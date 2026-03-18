@@ -204,14 +204,6 @@ class EmbeddingStore:
     def count(self) -> int:
         """Количество документов в коллекции"""
         return self.collection.count()
-    
-    def persist(self):
-        """Сохранение изменений на диск"""
-        try:
-            self.client.persist()
-            logger.info("Векторная база сохранена")
-        except Exception as e:
-            logger.error(f"Ошибка сохранения: {e}")
 
 
 # Пример документов для начальной загрузки
