@@ -493,12 +493,21 @@ async def list_documents(limit: int = 100, offset: int = 0):
 async def delete_document(doc_id: str):
     """Удаление документа"""
     try:
-        success = embedding_store.delete_document(doc_id)
-        if success:
-            return {"status": "ok", "doc_id": doc_id}
-        else:
-            raise HTTPException(status_code=404, detail="Document not found")
+        embedding_store.delete_document(doc_id)
+        return {"status": "ok", "message": "Документ удален"}
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/api/admin/clear-cache")
+async def clear_assistant_cache():
+    """Очистка кэша ассистента"""
+    try:
+        cache.clear()
+        logger.info("Кэш ассистента очищен")
+        return {"status": "ok", "message": "Кэш ассистента очищен"}
+    except Exception as e:
+        logger.error(f"Ошибка очистки кэша: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

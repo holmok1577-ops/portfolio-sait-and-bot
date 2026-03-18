@@ -409,6 +409,15 @@
                         <i class="fas fa-trash-alt"></i> Сбросить localStorage
                     </button>
                 </div>
+                <div class="section-card" style="background: rgba(245, 158, 11, 0.1); border: 1px solid var(--warning);">
+                    <h3><i class="fas fa-database" style="color: var(--warning);"></i> Кэш ассистента</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Очистка кэша ассистента может помочь, если AI дает старые или некорректные ответы.
+                    </p>
+                    <button class="btn btn-warning" onclick="clearAssistantCache()">
+                        <i class="fas fa-trash-alt"></i> Очистить кэш ассистента
+                    </button>
+                </div>
             </div>
 
             <!-- Profile -->
@@ -756,6 +765,25 @@
                 localStorage.removeItem('siteDataVersion');
                 showToast('localStorage очищен! Перезагрузка...', 'success');
                 setTimeout(() => location.reload(), 1500);
+            }
+        }
+
+        async function clearAssistantCache() {
+            if (confirm('Очистить кэш ассистента? Это может помочь, если AI дает старые или некорректные ответы.')) {
+                try {
+                    const response = await fetch(`${API_BASE}/api/admin/clear-cache`, {
+                        method: 'POST'
+                    });
+                    
+                    if (response.ok) {
+                        showToast('Кэш ассистента очищен!', 'success');
+                    } else {
+                        throw new Error('Failed to clear cache');
+                    }
+                } catch (e) {
+                    console.error('Ошибка очистки кэша:', e);
+                    showToast('Ошибка очистки кэша', 'error');
+                }
             }
         }
 
