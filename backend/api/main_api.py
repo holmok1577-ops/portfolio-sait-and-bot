@@ -576,9 +576,9 @@ async def upload_profile_photo(file: UploadFile = File(...)):
         # Читаем содержимое
         content = await file.read()
         
-        # Проверяем размер (макс 5MB до сжатия)
-        if len(content) > 5 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="Файл слишком большой (макс 5MB)")
+        # Проверяем размер (макс 20MB до сжатия)
+        if len(content) > 20 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Файл слишком большой (макс 20MB)")
         
         # Определяем формат для сжатия
         if file.content_type == "image/png":
@@ -665,9 +665,9 @@ async def upload_portfolio_image(file: UploadFile = File(...)):
         # Читаем содержимое
         content = await file.read()
         
-        # Проверяем размер (макс 5MB до сжатия)
-        if len(content) > 5 * 1024 * 1024:
-            raise HTTPException(status_code=400, detail="Файл слишком большой (макс 5MB)")
+        # Проверяем размер (макс 20MB до сжатия)
+        if len(content) > 20 * 1024 * 1024:
+            raise HTTPException(status_code=400, detail="Файл слишком большой (макс 20MB)")
         
         # Определяем формат для сжатия
         if file.content_type == "image/png":
