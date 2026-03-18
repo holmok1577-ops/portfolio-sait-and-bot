@@ -410,73 +410,72 @@
             }
         }
 
-        // Загрузка портфолио из localStorage
-        function loadPortfolio() {
-            const localData = localStorage.getItem('siteData');
-            if (!localData) return;
-
+        // Загрузка портфолио с API
+        async function loadPortfolio() {
             try {
-                const data = JSON.parse(localData);
-                if (!data.portfolio || data.portfolio.length === 0) return;
+                const response = await fetch('/api/admin/site-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.portfolio || data.portfolio.length === 0) return;
 
-                const grid = document.querySelector('.portfolio__grid');
-                if (!grid) return;
+                    const grid = document.querySelector('.portfolio__grid');
+                    if (!grid) return;
 
-                // Очищаем и пересоздаем карточки портфолио
-                grid.innerHTML = data.portfolio.map(item => {
-                    const imageHtml = item.image 
-                        ? `<img src="${item.image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px 8px 0 0;">`
-                        : `<i class="${item.icon || 'fas fa-folder'}"></i>`;
-                    
-                    const linkHtml = item.link 
-                        ? `<a href="${item.link}" target="_blank" class="portfolio__link"><i class="fas fa-external-link-alt"></i> Посмотреть</a>`
-                        : '';
+                    // Очищаем и пересоздаем карточки портфолио
+                    grid.innerHTML = data.portfolio.map(item => {
+                        const imageHtml = item.image 
+                            ? `<img src="${item.image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px 8px 0 0;">`
+                            : `<i class="${item.icon || 'fas fa-folder'}"></i>`;
+                        
+                        const linkHtml = item.link 
+                            ? `<a href="${item.link}" target="_blank" class="portfolio__link"><i class="fas fa-external-link-alt"></i> Посмотреть</a>`
+                            : '';
 
-                    return `
-                        <div class="portfolio__card">
-                            <div class="portfolio__image" style="${item.image ? 'padding: 0;' : ''}">
-                                ${imageHtml}
+                        return `
+                            <div class="portfolio__card">
+                                <div class="portfolio__image" style="${item.image ? 'padding: 0;' : ''}">
+                                    ${imageHtml}
+                                </div>
+                                <div class="portfolio__content">
+                                    <h3>${item.title}</h3>
+                                    <p>${item.description}</p>
+                                    ${linkHtml}
+                                </div>
                             </div>
-                            <div class="portfolio__content">
-                                <h3>${item.title}</h3>
-                                <p>${item.description}</p>
-                                ${linkHtml}
-                            </div>
-                        </div>
-                    `;
-                }).join('');
+                        `;
+                    }).join('');
+                }
             } catch (e) {
                 console.log('Ошибка загрузки портфолио:', e);
             }
         }
 
-        // Загрузка услуг из localStorage
-        function loadServices() {
-            const localData = localStorage.getItem('siteData');
-            if (!localData) return;
-
+        // Загрузка услуг с API
+        async function loadServices() {
             try {
-                const data = JSON.parse(localData);
-                if (!data.services || data.services.length === 0) return;
+                const response = await fetch('/api/admin/site-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (!data.services || data.services.length === 0) return;
 
-                const grid = document.querySelector('.services__grid');
-                if (!grid) return;
+                    const grid = document.querySelector('.services__grid');
+                    if (!grid) return;
 
-                // Очищаем и пересоздаем карточки услуг
-                grid.innerHTML = data.services.map(item => {
-                    const featuresHtml = item.features && item.features.length > 0
-                        ? `<ul class="service__list">${item.features.map(f => `<li>${f}</li>`).join('')}</ul>`
-                        : '';
-
-                    return `
-                        <div class="service__card">
-                            <span class="service__icon"><i class="${item.icon || 'fas fa-cog'}"></i></span>
-                            <h3>${item.title}</h3>
-                            <p>${item.description}</p>
-                            ${featuresHtml}
-                        </div>
-                    `;
-                }).join('');
+                    // Очищаем и пересоздаем карточки услуг
+                    grid.innerHTML = data.services.map(item => {
+                        return `
+                            <div class="services__card">
+                                <div class="services__icon">
+                                    <i class="${item.icon || 'fas fa-cog'}"></i>
+                                </div>
+                                <div class="services__content">
+                                    <h3>${item.title}</h3>
+                                    <p>${item.description}</p>
+                                </div>
+                            </div>
+                        `;
+                    }).join('');
+                }
             } catch (e) {
                 console.log('Ошибка загрузки услуг:', e);
             }
