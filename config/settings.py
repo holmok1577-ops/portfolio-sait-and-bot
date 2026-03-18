@@ -9,6 +9,10 @@ from dotenv import load_dotenv
 # Загрузка переменных окружения
 load_dotenv()
 
+# Логирование для проверки загрузки .env файла
+import sys
+print(f"RAG_SIMILARITY_THRESHOLD from env: {os.getenv('RAG_SIMILARITY_THRESHOLD')}", file=sys.stderr)
+
 # Базовые пути
 BASE_DIR = Path(__file__).parent.parent
 DATA_DIR = BASE_DIR / "data"
