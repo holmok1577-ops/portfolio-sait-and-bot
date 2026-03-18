@@ -32,11 +32,8 @@ class EmbeddingStore:
         self.persist_directory = persist_directory or str(CHROMA_DIR)
         self.embedding_model = embedding_model or EMBEDDING_MODEL
         
-        # Инициализация клиента ChromaDB
-        self.client = chromadb.Client(Settings(
-            chroma_db_impl="duckdb+parquet",
-            persist_directory=self.persist_directory
-        ))
+        # Инициализация клиента ChromaDB (новый API)
+        self.client = chromadb.PersistentClient(path=self.persist_directory)
         
         # Получение или создание коллекции
         self.collection = self.client.get_or_create_collection(
