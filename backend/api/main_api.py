@@ -777,6 +777,10 @@ else:
     async def root():
         return {"message": f"{APP_NAME} API", "version": APP_VERSION}
 
+# Монтируем директорию uploads для изображений
+if os.path.exists(UPLOAD_DIR):
+    app.mount("/images", StaticFiles(directory=UPLOAD_DIR), name="images")
+
 
 if __name__ == "__main__":
     import uvicorn
