@@ -2,6 +2,13 @@
 """
 Векторное хранилище документов на базе ChromaDB
 """
+import sys
+try:
+    __import__('pysqlite3')
+    sys.modules['sqlite3'] = sys.modules.pop('pysqlite3')
+except ImportError:
+    pass
+
 import os
 import hashlib
 from typing import List, Dict, Any, Optional
