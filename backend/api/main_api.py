@@ -110,8 +110,6 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 Завершение работы...")
     if health_checker:
         health_checker.stop_monitoring()
-    if embedding_store:
-        embedding_store.persist()
     logger.info("👋 Приложение остановлено")
 
 
