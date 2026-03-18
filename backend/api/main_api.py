@@ -121,7 +121,7 @@ async def lifespan(app: FastAPI):
                 
                 # Проверяем, не загружен ли уже документ
                 existing_docs = embedding_store.get_all_documents()
-                existing_filenames = [doc.metadata.get('filename') for doc in existing_docs]
+                existing_filenames = [doc.get('metadata', {}).get('filename') if isinstance(doc, dict) else doc.metadata.get('filename') for doc in existing_docs]
                 
                 if filename in existing_filenames:
                     logger.info(f"Документ {filename} уже загружен")
