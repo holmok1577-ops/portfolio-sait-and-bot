@@ -1,0 +1,27 @@
+[Unit]
+Description=Portfolio AI Assistant
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/portfolio-ai
+Environment=PYTHONPATH=/opt/portfolio-ai
+Environment=PYTHONUNBUFFERED=1
+
+# Загрузка переменных из .env
+EnvironmentFile=/opt/portfolio-ai/.env
+
+ExecStart=/usr/bin/python3 /opt/portfolio-ai/run.py --mode combined
+ExecStop=/bin/kill -TERM $MAINPID
+ExecReload=/bin/kill -HUP $MAINPID
+
+Restart=always
+RestartSec=10
+
+# Логирование
+StandardOutput=append:/var/log/portfolio-ai.log
+StandardError=append:/var/log/portfolio-ai.error.log
+
+[Install]
+WantedBy=multi-user.target

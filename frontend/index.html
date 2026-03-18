@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Станислав | Промпт-инженер & AI-разработчик</title>
+    <meta name="description" content="Профессиональный промпт-инженер. Создаю AI-решения: чат-боты, автономные агенты, RAG-системы. Годовая поддержка проектов.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <nav class="nav">
+            <div class="nav__logo">
+                <span class="logo__icon"><i class="fas fa-brain"></i></span>
+                <span class="logo__text">Станислав</span>
+            </div>
+            <ul class="nav__menu">
+                <li><a href="#home">Главная</a></li>
+                <li><a href="#about">Обо мне</a></li>
+                <li><a href="#skills">Навыки</a></li>
+                <li><a href="#services">Услуги</a></li>
+                <li><a href="#portfolio">Портфолио</a></li>
+                <li><a href="#contact">Контакты</a></li>
+            </ul>
+            <div class="nav__actions">
+                <button class="btn btn--primary" onclick="toggleChat()">
+                    <span><i class="fas fa-robot"></i></span> AI Ассистент
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="hero" id="home">
+        <div class="hero__content">
+            <div class="hero__badge"><i class="fas fa-robot"></i> Промпт-инженер</div>
+            <h1 class="hero__title">
+                Создаю <span class="highlight">AI-решения</span><br>
+                для вашего бизнеса
+            </h1>
+            <p class="hero__subtitle">
+                Всем привет! Я Станислав, промпт-инженер. Создаю эффективные решения на основе 
+                технологий искусственного интеллекта. Веду проекты от идеи до финала, 
+                разрабатываю ИИ-помощников с нуля до готового продукта.
+            </p>
+            <div class="hero__stats">
+                <div class="stat"><span class="stat__number">50+</span><span class="stat__label">Проектов</span></div>
+                <div class="stat"><span class="stat__number">1+</span><span class="stat__label">Год поддержки</span></div>
+                <div class="stat"><span class="stat__number">100%</span><span class="stat__label">Гарантия</span></div>
+            </div>
+            <div class="hero__actions">
+                <button class="btn btn--large btn--primary" onclick="toggleChat()">
+                    Обсудить проект
+                </button>
+                <a href="#portfolio" class="btn btn--large btn--outline">
+                    Мои работы
+                </a>
+            </div>
+        </div>
+        <div class="hero__visual">
+            <div class="hero__photo-container">
+                <img src="images/profile.jpg" alt="Станислав - Промпт-инженер" class="hero__photo" id="profilePhoto">
+                <div class="hero__photo-overlay">
+                    <span class="hero__photo-badge">
+                        <i class="fas fa-check-circle"></i> Год поддержки бесплатно
+                    </span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="section">
+        <div class="container">
+            <h2 class="section__title">Обо мне</h2>
+            <div class="about__grid">
+                <div class="about__content">
+                    <p class="about__text">
+                        Меня зовут Станислав, и я промпт-инженер. Создаю эффективные решения на основе 
+                        технологий искусственного интеллекта. Веду проекты от идеи до финала, 
+                        разрабатываю ИИ-помощников с нуля до готового продукта.
+                    </p>
+                    <p class="about__text">
+                        <strong>Годовая поддержка бесплатно</strong> — устраняю поломки в течение первого года эксплуатации.
+                    </p>
+                    <div class="about__guarantee">
+                        <i class="fas fa-shield-alt"></i>
+                        <span>Гарантирую надежность и эффективность решений</span>
+                    </div>
+                </div>
+                <div class="about__features">
+                    <div class="feature">
+                        <span class="feature__icon"><i class="fab fa-telegram"></i></span>
+                        <h4>Телеграм-боты</h4>
+                        <p>Автоматизация обработки заявок и обращений</p>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon"><i class="fas fa-robot"></i></span>
+                        <h4>ИИ-ассистенты</h4>
+                        <p>Виртуальные помощники для вашего бизнеса</p>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon"><i class="fas fa-cogs"></i></span>
+                        <h4>Автономные агенты</h4>
+                        <p>Умные ассистенты для рутинных задач</p>
+                    </div>
+                    <div class="feature">
+                        <span class="feature__icon"><i class="fas fa-database"></i></span>
+                        <h4>RAG системы</h4>
+                        <p>Точные ответы из базы знаний</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Skills Section -->
+    <section id="skills" class="section section--alt">
+        <div class="container">
+            <h2 class="section__title">Мои компетенции</h2>
+            <p class="section__subtitle">Что я умею как промпт-инженер</p>
+            <div class="skills__grid">
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Понимать, как работают большие языковые модели (LLM) и в чём их ограничения и сильные стороны</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Формулировать чёткие и результативные промпты под разные задачи: текст, аналитику, код, идеи</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Использовать базовые и продвинутые роли (system / user / assistant) для управления поведением модели</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Применять ключевые стратегии промпт-инжиниринга (zero-shot, few-shot, chain-of-thought)</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Оптимизировать промпты под конкретные цели: точность, креативность, структуру, формат ответа</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Диагностировать и исправлять ошибки в ответах модели с помощью итеративного улучшения</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Проектировать промпты под реальные бизнес-задачи, а не абстрактные эксперименты</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Работать с no-code-платформами для создания ИИ-ассистентов без программирования</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Подключать и использовать API языковых моделей для автоматизации процессов</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Понимать принципы мультимодальных моделей и работать с текстом, изображениями</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Создавать сценарии взаимодействия пользователя с ИИ (user flow, логика диалога)</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Разрабатывать ассистентов с памятью и контекстом для длительного взаимодействия</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Использовать базы знаний и принципы RAG (Retrieval-Augmented Generation)</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Интегрировать внешние данные в работу ассистента для повышения ценности решений</span></div>
+                <div class="skill__item"><i class="fas fa-check-circle"></i><span>Оценивать качество работы ИИ-ассистентов и улучшать их под конкретные запросы</span></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Services Section -->
+    <section id="services" class="section">
+        <div class="container">
+            <h2 class="section__title">Направления работы</h2>
+            <div class="services__grid">
+                <div class="service__card">
+                    <span class="service__icon"><i class="fab fa-telegram"></i></span>
+                    <h3>Телеграм-боты</h3>
+                    <p>Автоматизирую обработку заявок и обращений пользователей, повышаю скорость обслуживания и снижаю нагрузку на сотрудников.</p>
+                    <ul class="service__list">
+                        <li>AI-консультанты</li>
+                        <li>Обработка заказов</li>
+                        <li>Техническая поддержка</li>
+                    </ul>
+                </div>
+                <div class="service__card">
+                    <span class="service__icon"><i class="fas fa-robot"></i></span>
+                    <h3>ИИ-ассистенты</h3>
+                    <p>Разрабатываю виртуальных помощников, будь то персональный консультант или служба поддержки, способные эффективно отвечать на запросы.</p>
+                    <ul class="service__list">
+                        <li>База знаний RAG</li>
+                        <li>Мультимодальность</li>
+                        <li>Память и контекст</li>
+                    </ul>
+                </div>
+                <div class="service__card">
+                    <span class="service__icon"><i class="fas fa-cogs"></i></span>
+                    <h3>Автономные агенты</h3>
+                    <p>Создаю умных ассистентов, которые самостоятельно выполняют рутинные задачи, освобождая ваше время для важных дел.</p>
+                    <ul class="service__list">
+                        <li>Автоматизация процессов</li>
+                        <li>Интеграция с API</li>
+                        <li>Самостоятельные решения</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Portfolio Section -->
+    <section id="portfolio" class="section section--alt">
+        <div class="container">
+            <h2 class="section__title">Мои работы</h2>
+            <p class="section__subtitle">Реальные проекты и реализованные решения</p>
+            <div class="portfolio__grid">
+                <div class="portfolio__card">
+                    <div class="portfolio__image">
+                        <i class="fab fa-docker"></i>
+                    </div>
+                    <div class="portfolio__content">
+                        <h3>Docker Hub</h3>
+                        <p>Коллекция Docker образов для различных проектов и приложений.</p>
+                        <a href="https://hub.docker.com/repositories/holmok1577" target="_blank" class="portfolio__link">
+                            <i class="fas fa-external-link-alt"></i> Посмотреть
+                        </a>
+                    </div>
+                </div>
+                <div class="portfolio__card">
+                    <div class="portfolio__image">
+                        <i class="fab fa-github"></i>
+                    </div>
+                    <div class="portfolio__content">
+                        <h3>GitHub Репозитории</h3>
+                        <p>Открытые проекты и исходный код различных приложений.</p>
+                        <a href="https://github.com/holmok1577-ops" target="_blank" class="portfolio__link">
+                            <i class="fas fa-external-link-alt"></i> Посмотреть
+                        </a>
+                    </div>
+                </div>
+                <div class="portfolio__card">
+                    <div class="portfolio__image">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <div class="portfolio__content">
+                        <h3>AI Ассистент с RAG</h3>
+                        <p>Сайт-портфолио с интегрированным AI ассистентом и системой базы знаний.</p>
+                        <span class="portfolio__tag">Python, FastAPI, ChromaDB</span>
+                    </div>
+                </div>
+                <div class="portfolio__card">
+                    <div class="portfolio__image">
+                        <i class="fab fa-telegram"></i>
+                    </div>
+                    <div class="portfolio__content">
+                        <h3>Telegram AI Бот</h3>
+                        <p>Интеллектуальный бот с режимами RAG и AI помощника.</p>
+                        <span class="portfolio__tag">python-telegram-bot</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Contact Section -->
+    <section id="contact" class="section">
+        <div class="container">
+            <h2 class="section__title">Связаться со мной</h2>
+            <p class="section__subtitle">Готов обсудить ваш проект</p>
+            <div class="contact__grid">
+                <form class="contact__form" id="contactForm">
+                    <div class="form__group">
+                        <label for="name">Имя</label>
+                        <input type="text" id="name" name="name" required placeholder="Ваше имя">
+                    </div>
+                    <div class="form__group">
+                        <label for="email">Email</label>
+                        <input type="email" id="email" name="email" required placeholder="your@email.com">
+                    </div>
+                    <div class="form__group">
+                        <label for="service">Услуга</label>
+                        <select id="service" name="service" required>
+                            <option value="">Выберите услугу</option>
+                            <option value="telegram-bot">Телеграм-бот с AI</option>
+                            <option value="ai-assistant">ИИ-ассистент</option>
+                            <option value="autonomous-agent">Автономный агент</option>
+                            <option value="rag-system">RAG-система</option>
+                            <option value="consulting">Консультация</option>
+                            <option value="other">Другое</option>
+                        </select>
+                    </div>
+                    <div class="form__group">
+                        <label for="message">Сообщение</label>
+                        <textarea id="message" name="message" rows="5" required placeholder="Опишите ваш проект..."></textarea>
+                    </div>
+                    <button type="submit" class="btn btn--primary btn--full">
+                        <i class="fas fa-paper-plane"></i> Отправить заявку
+                    </button>
+                </form>
+                <div class="contact__info">
+                    <div class="contact__item">
+                        <span class="contact__icon"><i class="fab fa-telegram"></i></span>
+                        <div>
+                            <h4>Telegram</h4>
+                            <a href="https://t.me/stanislav_prompt" target="_blank">@stanislav_prompt</a>
+                        </div>
+                    </div>
+                    <div class="contact__item">
+                        <span class="contact__icon"><i class="fab fa-github"></i></span>
+                        <div>
+                            <h4>GitHub</h4>
+                            <a href="https://github.com/holmok1577-ops" target="_blank">github.com/holmok1577-ops</a>
+                        </div>
+                    </div>
+                    <div class="contact__item">
+                        <span class="contact__icon"><i class="fab fa-docker"></i></span>
+                        <div>
+                            <h4>Docker Hub</h4>
+                            <a href="https://hub.docker.com/repositories/holmok1577" target="_blank">hub.docker.com/holmok1577</a>
+                        </div>
+                    </div>
+                    <div class="contact__item">
+                        <span class="contact__icon"><i class="fas fa-robot"></i></span>
+                        <div>
+                            <h4>AI Ассистент</h4>
+                            <p>Нажмите кнопку справа внизу!</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer__content">
+                <div class="footer__brand">
+                    <i class="fas fa-brain"></i>
+                    <span>Станислав | Промпт-инженер</span>
+                </div>
+                <div class="footer__links">
+                    <a href="https://github.com/holmok1577-ops" target="_blank"><i class="fab fa-github"></i></a>
+                    <a href="https://hub.docker.com/repositories/holmok1577" target="_blank"><i class="fab fa-docker"></i></a>
+                    <a href="https://t.me/stanislav_prompt" target="_blank"><i class="fab fa-telegram"></i></a>
+                </div>
+                <p class="footer__copy">© 2024 Станислав. Все права защищены.</p>
+            </div>
+        </div>
+        <!-- Admin gear icon at bottom right -->
+        <a href="admin.html" class="admin-gear" title="Админ панель">
+            <i class="fas fa-cog"></i>
+        </a>
+    </footer>
+
+    <!-- Chat Widget -->
+    <div class="chat__widget" id="chatWidget">
+        <div class="chat__header">
+            <div class="chat__title">
+                <span class="chat__icon">🤖</span>
+                <span>AI Ассистент</span>
+            </div>
+            <div class="chat__controls">
+                <button class="chat__mode" id="modeToggle" title="Переключить режим">
+                    📚 RAG
+                </button>
+                <button class="chat__close" onclick="toggleChat()">×</button>
+            </div>
+        </div>
+        <div class="chat__body" id="chatBody">
+            <div class="chat__welcome">
+                <p>Привет! Я могу работать в двух режимах:</p>
+                <ul>
+                    <li><strong>📚 RAG</strong> — ответы из базы знаний</li>
+                    <li><strong>💬 AI</strong> — общий помощник</li>
+                </ul>
+                <p>Нажмите кнопку в заголовке для переключения.</p>
+            </div>
+        </div>
+        <div class="chat__footer">
+            <div class="chat__typing" id="chatTyping" style="display: none;">
+                <span></span><span></span><span></span>
+            </div>
+            <form class="chat__form" id="chatForm">
+                <input 
+                    type="text" 
+                    id="chatInput" 
+                    placeholder="Введите сообщение..." 
+                    autocomplete="off"
+                >
+                <button type="submit" class="chat__send">➤</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Chat Toggle Button -->
+    <button class="chat__toggle" id="chatToggle" onclick="toggleChat()">
+        <span>💬</span>
+    </button>
+
+    <!-- Toast Notifications -->
+    <div class="toast__container" id="toastContainer"></div>
+
+    <script src="script.js"></script>
+    <script>
+        // Загрузка фото профиля из localStorage или с сервера
+        async function loadProfilePhoto() {
+            const photoElement = document.getElementById('profilePhoto');
+            if (!photoElement) return;
+
+            const localData = localStorage.getItem('siteData');
+            if (localData) {
+                try {
+                    const data = JSON.parse(localData);
+                    if (data.profile?.photo) {
+                        photoElement.src = data.profile.photo;
+                        return;
+                    }
+                } catch (e) {
+                    console.log('Ошибка чтения localStorage');
+                }
+            }
+
+            try {
+                const response = await fetch('/api/admin/images');
+                if (response.ok) {
+                    const images = await response.json();
+                    if (images.profile) {
+                        photoElement.src = images.profile;
+                    }
+                }
+            } catch (e) {
+                console.log('API недоступен, используем стандартное фото');
+            }
+        }
+
+        // Загрузка портфолио из localStorage
+        function loadPortfolio() {
+            const localData = localStorage.getItem('siteData');
+            if (!localData) return;
+
+            try {
+                const data = JSON.parse(localData);
+                if (!data.portfolio || data.portfolio.length === 0) return;
+
+                const grid = document.querySelector('.portfolio__grid');
+                if (!grid) return;
+
+                // Очищаем и пересоздаем карточки портфолио
+                grid.innerHTML = data.portfolio.map(item => {
+                    const imageHtml = item.image 
+                        ? `<img src="${item.image}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px 8px 0 0;">`
+                        : `<i class="${item.icon || 'fas fa-folder'}"></i>`;
+                    
+                    const linkHtml = item.link 
+                        ? `<a href="${item.link}" target="_blank" class="portfolio__link"><i class="fas fa-external-link-alt"></i> Посмотреть</a>`
+                        : '';
+
+                    return `
+                        <div class="portfolio__card">
+                            <div class="portfolio__image" style="${item.image ? 'padding: 0;' : ''}">
+                                ${imageHtml}
+                            </div>
+                            <div class="portfolio__content">
+                                <h3>${item.title}</h3>
+                                <p>${item.description}</p>
+                                ${linkHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.log('Ошибка загрузки портфолио:', e);
+            }
+        }
+
+        // Загрузка услуг из localStorage
+        function loadServices() {
+            const localData = localStorage.getItem('siteData');
+            if (!localData) return;
+
+            try {
+                const data = JSON.parse(localData);
+                if (!data.services || data.services.length === 0) return;
+
+                const grid = document.querySelector('.services__grid');
+                if (!grid) return;
+
+                // Очищаем и пересоздаем карточки услуг
+                grid.innerHTML = data.services.map(item => {
+                    const featuresHtml = item.features && item.features.length > 0
+                        ? `<ul class="service__list">${item.features.map(f => `<li>${f}</li>`).join('')}</ul>`
+                        : '';
+
+                    return `
+                        <div class="service__card">
+                            <span class="service__icon"><i class="${item.icon || 'fas fa-cog'}"></i></span>
+                            <h3>${item.title}</h3>
+                            <p>${item.description}</p>
+                            ${featuresHtml}
+                        </div>
+                    `;
+                }).join('');
+            } catch (e) {
+                console.log('Ошибка загрузки услуг:', e);
+            }
+        }
+
+        // Загружаем данные при старте
+        loadProfilePhoto();
+        loadPortfolio();
+        loadServices();
+    </script>
+</body>
+</html>

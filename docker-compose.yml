@@ -1,0 +1,55 @@
+version: '3.8'
+
+services:
+  app:
+    image: holmok1577/portfolio-ai:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: portfolio-ai
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    environment:
+      - HOST=0.0.0.0
+      - PORT=8000
+      - DEBUG=false
+    env_file:
+      - .env
+    volumes:
+      - ./data:/app/data
+      - ./logs:/app/logs
+      - ./chroma_db:/app/chroma_db
+      - ./docs:/app/docs
+      - ./backups:/app/backups
+    networks:
+      - portfolio-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Сервис бэкапов
+  backup:
+    image: holmok1577/portfolio-ai:latest
+    container_name: portfolio-backup
+    restart: "no"
+    volumes:
+      - ./data:/app/data:ro
+      - ./chroma_db:/app/chroma_db:ro
+      - ./backups:/app/backups
+      - ./scripts:/app/scripts:ro
+    command: python scripts/backup.py
+    profiles:
+      - backup
+
+networks:
+  portfolio-network:
+    driver: bridge
+
+volumes:
+  data:
+  chroma_db:
+  backups:
