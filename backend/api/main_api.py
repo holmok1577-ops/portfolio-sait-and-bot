@@ -154,7 +154,7 @@ async def lifespan(app: FastAPI):
         embedding_store.add_documents(sample_docs)
     
     # Ждем завершения загрузки документов
-    await asyncio.sleep(1)
+    time.sleep(1)
     logger.info(f"Всего документов в базе: {embedding_store.count()}")
     
     # AI ассистент
