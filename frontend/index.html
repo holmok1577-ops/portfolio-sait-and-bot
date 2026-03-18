@@ -384,19 +384,6 @@
             const photoElement = document.getElementById('profilePhoto');
             if (!photoElement) return;
 
-            const localData = localStorage.getItem('siteData');
-            if (localData) {
-                try {
-                    const data = JSON.parse(localData);
-                    if (data.profile?.photo) {
-                        photoElement.src = data.profile.photo;
-                        return;
-                    }
-                } catch (e) {
-                    console.log('Ошибка чтения localStorage');
-                }
-            }
-
             try {
                 const response = await fetch('/api/admin/images');
                 if (response.ok) {

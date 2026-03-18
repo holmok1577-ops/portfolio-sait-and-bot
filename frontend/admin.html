@@ -803,13 +803,6 @@
             // Сначала сбрасываем editing у всех проектов
             siteData.portfolio.forEach(p => p.editing = false);
             siteData.services.forEach(s => s.editing = false);
-            
-            // Проверяем версию данных - если структура изменилась, очищаем localStorage
-            const dataVersion = localStorage.getItem('siteDataVersion');
-            if (dataVersion !== '2') {
-                localStorage.removeItem('siteData');
-                localStorage.setItem('siteDataVersion', '2');
-            }
 
             // Загружаем данные с сервера
             try {
@@ -834,7 +827,7 @@
                     }
                 }
             } catch (e) {
-                console.log('API site-data недоступен, используем локальные данные');
+                console.log('API site-data недоступен:', e);
             }
 
             // Загружаем фото с сервера
@@ -952,8 +945,6 @@
                 siteData.profile.photo = tempProfilePhoto;
             }
             saveData();
-            // Сохраняем в localStorage для отображения на сайте
-            localStorage.setItem('siteData', JSON.stringify(siteData));
             showToast('Фото профиля сохранено! Обновите сайт для применения.', 'success');
         }
 
@@ -1615,7 +1606,6 @@
 
         // === SAVE ALL ===
         async function saveData() {
-            localStorage.setItem('siteData', JSON.stringify(siteData));
             try {
                 await fetch(`${API_BASE}/api/admin/site-data`, {
                     method: 'POST',
@@ -1623,7 +1613,8 @@
                     body: JSON.stringify(siteData)
                 });
             } catch (e) {
-                console.log('API save failed, data saved locally');
+                console.log('API save failed:', e);
+                throw e;
             }
         }
 
