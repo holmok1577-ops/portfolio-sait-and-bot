@@ -80,18 +80,18 @@
         <div class="container">
             <h2 class="section__title">Обо мне</h2>
             <div class="about__grid">
-                <div class="about__content">
-                    <p class="about__text">
+                <div class="about__content" id="aboutContent">
+                    <p class="about__text" id="aboutText">
                         Меня зовут Станислав, и я промпт-инженер. Создаю эффективные решения на основе 
                         технологий искусственного интеллекта. Веду проекты от идеи до финала, 
                         разрабатываю ИИ-помощников с нуля до готового продукта.
                     </p>
-                    <p class="about__text">
+                    <p class="about__text" id="aboutGuarantee">
                         <strong>Годовая поддержка бесплатно</strong> — устраняю поломки в течение первого года эксплуатации.
                     </p>
                     <div class="about__guarantee">
                         <i class="fas fa-shield-alt"></i>
-                        <span>Гарантирую надежность и эффективность решений</span>
+                        <span id="aboutGuaranteeText">Гарантирую надежность и эффективность решений</span>
                     </div>
                 </div>
                 <div class="about__features">
@@ -274,28 +274,35 @@
                     </button>
                 </form>
                 <div class="contact__info">
-                    <div class="contact__item">
+                    <div class="contact__item" id="contactTelegram">
                         <span class="contact__icon"><i class="fab fa-telegram"></i></span>
                         <div>
                             <h4>Telegram</h4>
                             <a href="https://t.me/stanislav_prompt" target="_blank">@stanislav_prompt</a>
                         </div>
                     </div>
-                    <div class="contact__item">
+                    <div class="contact__item" id="contactEmail" style="display: none;">
+                        <span class="contact__icon"><i class="fas fa-envelope"></i></span>
+                        <div>
+                            <h4>Email</h4>
+                            <a href="mailto:" target="_blank"></a>
+                        </div>
+                    </div>
+                    <div class="contact__item" id="contactGithub">
                         <span class="contact__icon"><i class="fab fa-github"></i></span>
                         <div>
                             <h4>GitHub</h4>
                             <a href="https://github.com/holmok1577-ops" target="_blank">github.com/holmok1577-ops</a>
                         </div>
                     </div>
-                    <div class="contact__item">
+                    <div class="contact__item" id="contactDocker">
                         <span class="contact__icon"><i class="fab fa-docker"></i></span>
                         <div>
                             <h4>Docker Hub</h4>
                             <a href="https://hub.docker.com/repositories/holmok1577" target="_blank">hub.docker.com/holmok1577</a>
                         </div>
                     </div>
-                    <div class="contact__item">
+                    <div class="contact__item" id="contactAI">
                         <span class="contact__icon"><i class="fas fa-robot"></i></span>
                         <div>
                             <h4>AI Ассистент</h4>
@@ -450,15 +457,16 @@
 
                     // Очищаем и пересоздаем карточки услуг
                     grid.innerHTML = data.services.map(item => {
+                        const featuresHtml = item.features && item.features.length > 0
+                            ? `<ul class="service__list">${item.features.map(f => `<li>${f}</li>`).join('')}</ul>`
+                            : '';
+
                         return `
-                            <div class="services__card">
-                                <div class="services__icon">
-                                    <i class="${item.icon || 'fas fa-cog'}"></i>
-                                </div>
-                                <div class="services__content">
-                                    <h3>${item.title}</h3>
-                                    <p>${item.description}</p>
-                                </div>
+                            <div class="service__card">
+                                <span class="service__icon"><i class="${item.icon || 'fas fa-cog'}"></i></span>
+                                <h3>${item.title}</h3>
+                                <p>${item.description}</p>
+                                ${featuresHtml}
                             </div>
                         `;
                     }).join('');
@@ -484,6 +492,50 @@
                         }
                         if (data.profile.guarantee) {
                             document.querySelector('.hero__photo-overlay span').innerHTML = `<i class="fas fa-check-circle"></i> ${data.profile.guarantee}`;
+                        }
+                        if (data.profile.about) {
+                            const aboutText = document.getElementById('aboutText');
+                            if (aboutText) aboutText.textContent = data.profile.about;
+                        }
+                        if (data.profile.guarantee_text) {
+                            const aboutGuarantee = document.getElementById('aboutGuarantee');
+                            if (aboutGuarantee) aboutGuarantee.innerHTML = `<strong>${data.profile.guarantee_text}</strong>`;
+                        }
+                        if (data.profile.guarantee_description) {
+                            const aboutGuaranteeText = document.getElementById('aboutGuaranteeText');
+                            if (aboutGuaranteeText) aboutGuaranteeText.textContent = data.profile.guarantee_description;
+                        }
+                    }
+                    if (data.contacts) {
+                        // Обновляем контакты на странице
+                        if (data.contacts.telegram) {
+                            const contactTelegram = document.getElementById('contactTelegram');
+                            if (contactTelegram) {
+                                contactTelegram.querySelector('a').textContent = data.contacts.telegram;
+                                contactTelegram.querySelector('a').href = `https://t.me/${data.contacts.telegram.replace('@', '')}`;
+                            }
+                        }
+                        if (data.contacts.email) {
+                            const contactEmail = document.getElementById('contactEmail');
+                            if (contactEmail) {
+                                contactEmail.style.display = 'flex';
+                                contactEmail.querySelector('a').textContent = data.contacts.email;
+                                contactEmail.querySelector('a').href = `mailto:${data.contacts.email}`;
+                            }
+                        }
+                        if (data.contacts.github) {
+                            const contactGithub = document.getElementById('contactGithub');
+                            if (contactGithub) {
+                                contactGithub.querySelector('a').textContent = data.contacts.github;
+                                contactGithub.querySelector('a').href = `https://${data.contacts.github}`;
+                            }
+                        }
+                        if (data.contacts.docker) {
+                            const contactDocker = document.getElementById('contactDocker');
+                            if (contactDocker) {
+                                contactDocker.querySelector('a').textContent = data.contacts.docker;
+                                contactDocker.querySelector('a').href = `https://${data.contacts.docker}`;
+                            }
                         }
                     }
                 }
