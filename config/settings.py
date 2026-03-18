@@ -37,7 +37,7 @@ PROXY_API_BASE = os.getenv("PROXY_API_BASE", "https://api.proxyapi.ru/openai/v1"
 
 # Настройки RAG
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
-RAG_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.7"))
+RAG_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.6"))
 
 # Настройки сервера
 HOST = os.getenv("HOST", "0.0.0.0")
