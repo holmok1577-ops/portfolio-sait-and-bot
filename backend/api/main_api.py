@@ -66,6 +66,22 @@ alert_manager: Optional[AlertManager] = None
 health_checker: Optional[HealthChecker] = None
 
 
+async def log_critical_error(level: str, message: str, details: str = None, component: str = "backend"):
+    """Логирование критической ошибки с сохранением в БД и отправкой в Telegram"""
+    try:
+        if db:
+            db.save_system_log(level=level, message=message, details=details)
+        
+        if alert_manager and level in ["error", "critical"]:
+            await alert_manager.send_error_alert(
+                component=component,
+                error=message,
+                details=details
+            )
+    except Exception as e:
+        logger.error(f"Ошибка при логировании критической ошибки: {e}")
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Управление жизненным циклом приложения"""
@@ -299,6 +315,37 @@ async def get_logs(
             "logs": logs,
             "total": len(logs)
         }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.get("/api/admin/system-logs")
+async def get_system_logs(
+    level: Optional[str] = None,
+    limit: int = 100,
+    offset: int = 0
+):
+    """Получение системных логов (для админки)"""
+    try:
+        logs = db.get_system_logs(
+            level=level,
+            limit=limit,
+            offset=offset
+        )
+        return {
+            "logs": logs,
+            "total": len(logs)
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.delete("/api/admin/system-logs")
+async def clear_system_logs():
+    """Очистка системных логов"""
+    try:
+        db.clear_system_logs()
+        return {"status": "ok", "message": "System logs cleared"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

@@ -560,6 +560,9 @@
                     <button class="tab" onclick="showLogTab('contacts')">
                         <i class="fas fa-envelope"></i> Заявки
                     </button>
+                    <button class="tab" onclick="showLogTab('system')">
+                        <i class="fas fa-exclamation-triangle"></i> Логи
+                    </button>
                     <button class="tab" onclick="showLogTab('stats')">
                         <i class="fas fa-chart-bar"></i> Статистика
                     </button>
@@ -579,6 +582,19 @@
                         Формы обратной связи, которые также дублируются в Telegram
                     </p>
                     <div id="contactFormsList"></div>
+                </div>
+
+                <div class="section-card log-tab-content" id="system-tab" style="display: none;">
+                    <h3><i class="fas fa-exclamation-triangle"></i> Системные логи</h3>
+                    <p style="color: var(--text-muted); margin-bottom: 15px;">
+                        Критические ошибки, сбои и падения сервиса
+                    </p>
+                    <div style="margin-bottom: 15px;">
+                        <button class="btn btn-danger" onclick="clearSystemLogs()">
+                            <i class="fas fa-trash"></i> Очистить логи
+                        </button>
+                    </div>
+                    <div id="systemLogsList"></div>
                 </div>
 
                 <div class="section-card log-tab-content" id="stats-tab" style="display: none;">
@@ -1404,6 +1420,22 @@
                 `;
             }
 
+            // Загружаем системные логи
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/system-logs?limit=100`);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderSystemLogs(data.logs || []);
+                }
+            } catch (e) {
+                document.getElementById('systemLogsList').innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-plug"></i>
+                        <p>API системных логов недоступно.</p>
+                    </div>
+                `;
+            }
+
             // Загружаем заявки с сервера
             try {
                 const response = await fetch(`${API_BASE}/api/admin/contact-forms?limit=100`);
@@ -1422,6 +1454,53 @@
             }
             
             renderStats();
+        }
+
+        function renderSystemLogs(logs) {
+            const container = document.getElementById('systemLogsList');
+            if (logs.length === 0) {
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i><p>Нет системных ошибок</p></div>`;
+                return;
+            }
+            container.innerHTML = `
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Время</th>
+                            <th>Уровень</th>
+                            <th>Сообщение</th>
+                            <th>Детали</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${logs.map(log => `
+                            <tr class="${log.level === 'error' || log.level === 'critical' ? 'error-row' : ''}">
+                                <td>${new Date(log.timestamp).toLocaleString()}</td>
+                                <td><span class="badge ${log.level}">${log.level}</span></td>
+                                <td>${log.message}</td>
+                                <td>${log.details || '-'}</td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            `;
+        }
+
+        async function clearSystemLogs() {
+            if (!confirm('Вы уверены, что хотите очистить все системные логи?')) return;
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/system-logs`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    showToast('Системные логи очищены', 'success');
+                    renderSystemLogs([]);
+                } else {
+                    showToast('Ошибка очистки логов', 'error');
+                }
+            } catch (e) {
+                showToast('Ошибка соединения', 'error');
+            }
         }
 
         function renderMessages(logs) {

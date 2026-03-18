@@ -274,6 +274,48 @@ class DatabaseManager:
             rows = cursor.fetchall()
             return [dict(row) for row in rows]
     
+    def save_system_log(
+        self,
+        level: str,
+        message: str,
+        details: str = None
+    ) -> int:
+        """Сохранение системного лога"""
+        timestamp = datetime.now().isoformat()
+        with self._get_connection() as conn:
+            cursor = conn.execute("""
+                INSERT INTO system_logs (timestamp, level, message, details)
+                VALUES (?, ?, ?, ?)
+            """, (timestamp, level, message, details))
+            return cursor.lastrowid
+    
+    def get_system_logs(
+        self,
+        level: str = None,
+        limit: int = 100,
+        offset: int = 0
+    ) -> List[Dict[str, Any]]:
+        """Получение системных логов"""
+        query = "SELECT * FROM system_logs WHERE 1=1"
+        params = []
+        
+        if level:
+            query += " AND level = ?"
+            params.append(level)
+        
+        query += " ORDER BY timestamp DESC LIMIT ? OFFSET ?"
+        params.extend([limit, offset])
+        
+        with self._get_connection() as conn:
+            cursor = conn.execute(query, params)
+            rows = cursor.fetchall()
+            return [dict(row) for row in rows]
+    
+    def clear_system_logs(self):
+        """Очистка системных логов"""
+        with self._get_connection() as conn:
+            conn.execute("DELETE FROM system_logs")
+    
     def get_stats(self, days: int = 7) -> Dict[str, Any]:
         """Получение статистики"""
         start_date = (datetime.now() - timedelta(days=days)).isoformat()
