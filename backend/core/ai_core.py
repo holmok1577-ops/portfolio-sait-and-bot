@@ -145,14 +145,24 @@ class RAGProcessor:
         top_k = top_k or RAG_TOP_K
         threshold = similarity_threshold or RAG_SIMILARITY_THRESHOLD
         
+        logger.info(f"RAG запрос: '{query}', top_k={top_k}, threshold={threshold}")
+        
         # Поиск релевантных документов
         search_results = self.embedding_store.search(query, top_k=top_k)
+        logger.info(f"Найдено документов: {len(search_results)}")
         
         # Фильтрация по порогу схожести
         relevant_docs = [
             doc for doc in search_results 
             if doc.get('score', 0) >= threshold
         ]
+        logger.info(f"Релевантных документов (score >= {threshold}): {len(relevant_docs)}")
+        
+        if relevant_docs:
+            for i, doc in enumerate(relevant_docs):
+                score = doc.get('score', 0)
+                source = doc.get('metadata', {}).get('source', 'unknown')
+                logger.info(f"Документ {i+1}: score={score:.3f}, source={source}")
         
         # Генерация ответа
         answer, ai_metadata = self.ai_core.generate_response(
