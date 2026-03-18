@@ -97,6 +97,56 @@ async def lifespan(app: FastAPI):
     # Векторное хранилище
     embedding_store = EmbeddingStore()
     
+    # Загрузка документов из папки data/rag_documents/
+    def load_documents_from_folder():
+        """Загрузка документов из папки data/rag_documents/"""
+        rag_folder = os.path.join(os.path.dirname(__file__), "..", "..", "data", "rag_documents")
+        if not os.path.exists(rag_folder):
+            logger.info(f"Папка {rag_folder} не найдена")
+            return
+        
+        # Получаем список файлов в папке
+        files = [f for f in os.listdir(rag_folder) if f.endswith(('.md', '.txt', '.pdf'))]
+        if not files:
+            logger.info(f"В папке {rag_folder} нет документов")
+            return
+        
+        # Загружаем каждый файл
+        loaded_count = 0
+        for filename in files:
+            filepath = os.path.join(rag_folder, filename)
+            try:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    content = f.read()
+                
+                # Проверяем, не загружен ли уже документ
+                existing_docs = embedding_store.get_all_documents()
+                existing_filenames = [doc.metadata.get('filename') for doc in existing_docs]
+                
+                if filename in existing_filenames:
+                    logger.info(f"Документ {filename} уже загружен")
+                    continue
+                
+                # Добавляем документ в базу
+                meta = {
+                    "filename": filename,
+                    "content_type": "text/markdown" if filename.endswith('.md') else "text/plain",
+                    "uploaded_at": str(time.time()),
+                    "source": "rag_documents_folder"
+                }
+                
+                doc_id = embedding_store.add_document(content, meta)
+                loaded_count += 1
+                logger.info(f"Загружен документ: {filename} (ID: {doc_id})")
+            except Exception as e:
+                logger.error(f"Ошибка загрузки документа {filename}: {e}")
+        
+        if loaded_count > 0:
+            logger.info(f"Загружено {loaded_count} документов из папки {rag_folder}")
+    
+    # Загружаем документы из папки
+    load_documents_from_folder()
+    
     # Если база пуста — добавляем примеры
     if embedding_store.count() == 0:
         logger.info("Добавление примеров документов...")
