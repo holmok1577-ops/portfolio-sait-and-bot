@@ -851,24 +851,6 @@
                 console.log('API images недоступен');
             }
 
-            // Применяем локальные изменения ТОЛЬКО для фото и специфичных полей
-            const local = localStorage.getItem('siteData');
-            if (local) {
-                const localData = JSON.parse(local);
-                // Только фото профиля сохраняем из localStorage
-                if (localData.profile?.photo && !localData.profile.photo.startsWith('/images/')) {
-                    siteData.profile.photo = localData.profile.photo;
-                }
-                // Для портфолио сохраняем только image если оно base64
-                if (localData.portfolio) {
-                    localData.portfolio.forEach((localItem, idx) => {
-                        if (siteData.portfolio[idx] && localItem.image && !localItem.image.startsWith('/images/')) {
-                            siteData.portfolio[idx].image = localItem.image;
-                        }
-                    });
-                }
-            }
-
             renderProfile();
             renderServices();
             renderSkills();

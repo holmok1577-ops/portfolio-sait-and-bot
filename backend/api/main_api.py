@@ -615,6 +615,28 @@ async def upload_profile_photo(file: UploadFile = File(...)):
         
         logger.info(f"Фото профиля загружено и сжато: {filename}")
         
+        # Обновляем site_data.json с путем к фото профиля
+        try:
+            import json
+            data_path = os.path.join(os.path.dirname(__file__), "..", "..", "data", "site_data.json")
+            os.makedirs(os.path.dirname(data_path), exist_ok=True)
+            
+            site_data = {}
+            if os.path.exists(data_path):
+                with open(data_path, 'r', encoding='utf-8') as f:
+                    site_data = json.load(f)
+            
+            if 'profile' not in site_data:
+                site_data['profile'] = {}
+            site_data['profile']['photo'] = f"/images/{filename}"
+            
+            with open(data_path, 'w', encoding='utf-8') as f:
+                json.dump(site_data, f, ensure_ascii=False, indent=2)
+            
+            logger.info(f"Путь к фото профиля обновлен в site_data.json")
+        except Exception as e:
+            logger.error(f"Ошибка обновления site_data.json: {e}")
+        
         return {
             "status": "ok",
             "filename": filename,

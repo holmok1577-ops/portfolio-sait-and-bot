@@ -468,8 +468,33 @@
             }
         }
 
+        // Загрузка данных профиля с API
+        async function loadProfileData() {
+            try {
+                const response = await fetch('/api/admin/site-data');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.profile) {
+                        // Обновляем данные профиля на странице
+                        if (data.profile.name) {
+                            document.querySelector('.logo__text').textContent = data.profile.name;
+                        }
+                        if (data.profile.hero) {
+                            document.querySelector('.hero__subtitle').textContent = data.profile.hero;
+                        }
+                        if (data.profile.guarantee) {
+                            document.querySelector('.hero__photo-overlay span').innerHTML = `<i class="fas fa-check-circle"></i> ${data.profile.guarantee}`;
+                        }
+                    }
+                }
+            } catch (e) {
+                console.log('Ошибка загрузки данных профиля:', e);
+            }
+        }
+
         // Загружаем данные при старте
         loadProfilePhoto();
+        loadProfileData();
         loadPortfolio();
         loadServices();
     </script>
