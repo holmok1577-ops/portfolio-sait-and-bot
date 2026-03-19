@@ -12,6 +12,10 @@ import sys
 from datetime import datetime
 from dotenv import load_dotenv
 
+# Настройка UTF-8 кодировки для вывода
+sys.stdout.reconfigure(encoding='utf-8')
+sys.stderr.reconfigure(encoding='utf-8')
+
 # Загрузка переменных окружения
 load_dotenv()
 
