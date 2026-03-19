@@ -53,13 +53,13 @@ class AlertManager:
             }
             emoji = emoji_map.get(alert_type, "🔔")
             
-            full_message = f"{emoji} *{alert_type.upper()}*\n\n{message}\n\n📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+            full_message = f"{emoji} <b>{alert_type.upper()}</b>\n\n{message}\n\n📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
             
             async with aiohttp.ClientSession() as session:
                 async with session.post(url, json={
                     "chat_id": self.admin_id,
                     "text": full_message,
-                    "parse_mode": "Markdown"
+                    "parse_mode": "HTML"
                 }) as response:
                     if response.status == 200:
                         self.last_alerts[alert_type] = datetime.now()
