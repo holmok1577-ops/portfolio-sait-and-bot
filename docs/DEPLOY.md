@@ -29,7 +29,7 @@ docker-compose down
 # 2.1 Инициализация git (если не сделано)
 git init
 git add .
-git commit -m "Initial commit: Portfolio AI v1.0.0"
+git commit -m "Initial commit: Portfolio AI v1.2.1"
 
 # 2.2 Добавление remote (если нужно)
 git remote add origin https://github.com/holmok1577-ops/portfolio-sait-and-bot.git
@@ -289,4 +289,4 @@ curl http://localhost:8000/api/admin/export/interactions > logs.csv
 ---
 
 **Последнее обновление**: Март 2026  
-**Версия**: 1.0.0
+**Версия**: 1.2.1

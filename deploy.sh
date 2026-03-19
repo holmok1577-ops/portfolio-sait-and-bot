@@ -1,10 +1,10 @@
 #!/bin/bash
-# Deploy script for Portfolio AI Assistant v1.0.1
+# Deploy script for Portfolio AI Assistant v1.2.1
 # Run on server: bash deploy.sh
 
 set -e
 
-echo "🚀 Начинаем деплой Portfolio AI v1.0.1..."
+echo "🚀 Начинаем деплой Portfolio AI v1.2.1..."
 
 # 1. Очистка старых проектов
 echo "🧹 Очистка старых проектов..."
@@ -88,7 +88,7 @@ echo "⚠️ ВАЖНО: Отредактируйте файл /root/portfolio-a
 echo "🔧 Создание systemd сервиса..."
 cat > /etc/systemd/system/portfolio-ai.service << 'EOF'
 [Unit]
-Description=Portfolio AI Assistant v1.0.1
+Description=Portfolio AI Assistant v1.2.1
 After=network.target
 
 [Service]

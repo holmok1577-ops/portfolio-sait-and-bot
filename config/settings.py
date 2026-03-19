@@ -63,5 +63,5 @@ CACHE_ENABLED = os.getenv("CACHE_ENABLED", "true").lower() == "true"
 CACHE_TTL = int(os.getenv("CACHE_TTL", "3600"))  # 1 час
 
 # Версия приложения
-APP_VERSION = "1.0.1"
+APP_VERSION = "1.2.1"
 APP_NAME = "Portfolio AI Assistant"
