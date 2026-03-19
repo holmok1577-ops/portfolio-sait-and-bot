@@ -598,7 +598,13 @@
                     <p style="color: var(--text-muted); margin-bottom: 15px;">
                         Критические ошибки, сбои и падения сервиса
                     </p>
-                    <div style="margin-bottom: 15px;">
+                    <div style="margin-bottom: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                        <button class="btn btn-primary" onclick="loadSystemLogs()">
+                            <i class="fas fa-sync"></i> Загрузить последние 100 логов
+                        </button>
+                        <button class="btn btn-success" onclick="downloadSystemLogs()">
+                            <i class="fas fa-download"></i> Скачать логи
+                        </button>
                         <button class="btn btn-danger" onclick="clearSystemLogs()">
                             <i class="fas fa-trash"></i> Очистить логи
                         </button>
@@ -1498,6 +1504,59 @@
                     renderSystemLogs([]);
                 } else {
                     showToast('Ошибка очистки логов', 'error');
+                }
+            } catch (e) {
+                showToast('Ошибка соединения', 'error');
+            }
+        }
+
+        async function loadSystemLogs() {
+            showToast('Загрузка логов...', 'info');
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/system-logs?limit=100`);
+                if (response.ok) {
+                    const data = await response.json();
+                    renderSystemLogs(data.logs);
+                    showToast(`Загружено ${data.logs.length} логов`, 'success');
+                } else {
+                    showToast('Ошибка загрузки логов', 'error');
+                }
+            } catch (e) {
+                showToast('Ошибка соединения', 'error');
+            }
+        }
+
+        async function downloadSystemLogs() {
+            try {
+                const response = await fetch(`${API_BASE}/api/admin/system-logs?limit=1000`);
+                if (response.ok) {
+                    const data = await response.json();
+                    const logs = data.logs;
+                    
+                    // Создаем текстовый файл с логами
+                    let logText = '=== Системные логи ===\n\n';
+                    logs.forEach(log => {
+                        logText += `[${log.timestamp}] [${log.level}] ${log.message}\n`;
+                        if (log.details) {
+                            logText += `Детали: ${log.details}\n`;
+                        }
+                        logText += '\n';
+                    });
+                    
+                    // Создаем Blob и скачиваем файл
+                    const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' });
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `system_logs_${new Date().toISOString().split('T')[0]}.txt`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    window.URL.revokeObjectURL(url);
+                    
+                    showToast('Логи скачаны', 'success');
+                } else {
+                    showToast('Ошибка скачивания логов', 'error');
                 }
             } catch (e) {
                 showToast('Ошибка соединения', 'error');
