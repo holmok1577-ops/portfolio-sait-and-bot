@@ -67,19 +67,17 @@ health_checker: Optional[HealthChecker] = None
 
 
 async def log_critical_error(level: str, message: str, details: str = None, component: str = "backend"):
-    """Логирование критической ошибки с сохранением в БД и отправкой в Telegram"""
+    """Логирование критической ошибки с отправкой в Telegram"""
     try:
-        if db:
-            db.save_system_log(level=level, message=message, details=details)
-        
         if alert_manager and level in ["error", "critical"]:
             await alert_manager.send_error_alert(
-                component=component,
-                error=message,
-                details=details
+                level=level,
+                message=message,
+                details=details,
+                component=component
             )
     except Exception as e:
-        logger.error(f"Ошибка при логировании критической ошибки: {e}")
+        logger.error(f"Ошибка отправки алерта: {e}")
 
 
 @asynccontextmanager
