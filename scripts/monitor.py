@@ -28,7 +28,7 @@ API_URL = "http://localhost:8000"
 def send_telegram_alert(message: str):
     """Отправка оповещения в Telegram"""
     if not TELEGRAM_BOT_TOKEN or not ADMIN_TELEGRAM_ID:
-        print("❌ TELEGRAM_BOT_TOKEN или ADMIN_TELEGRAM_ID не заданы", file=sys.stderr)
+        print("[ERROR] TELEGRAM_BOT_TOKEN или ADMIN_TELEGRAM_ID не заданы", file=sys.stderr)
         return False
     
     try:
@@ -40,13 +40,13 @@ def send_telegram_alert(message: str):
         }
         response = requests.post(url, json=data, timeout=10)
         if response.status_code == 200:
-            print("✅ Оповещение отправлено в Telegram")
+            print("[OK] Оповещение отправлено в Telegram")
             return True
         else:
-            print(f"❌ Ошибка отправки в Telegram: {response.status_code}", file=sys.stderr)
+            print(f"[ERROR] Ошибка отправки в Telegram: {response.status_code}", file=sys.stderr)
             return False
     except Exception as e:
-        print(f"❌ Ошибка отправки в Telegram: {e}", file=sys.stderr)
+        print(f"[ERROR] Ошибка отправки в Telegram: {e}", file=sys.stderr)
         return False
 
 def check_service_status():
@@ -60,7 +60,7 @@ def check_service_status():
         )
         return result.stdout.strip() == "active"
     except Exception as e:
-        print(f"❌ Ошибка проверки статуса сервиса: {e}", file=sys.stderr)
+        print(f"[ERROR] Ошибка проверки статуса сервиса: {e}", file=sys.stderr)
         return False
 
 def check_site_health():
@@ -69,13 +69,13 @@ def check_site_health():
         response = requests.get(SITE_URL, timeout=10)
         return response.status_code == 200
     except Exception as e:
-        print(f"❌ Сайт недоступен: {e}", file=sys.stderr)
+        print(f"[ERROR] Сайт недоступен: {e}", file=sys.stderr)
         return False
 
 def restart_service():
     """Рестарт сервиса"""
     try:
-        print("🔄 Рестарт сервиса...")
+        print("[RESTART] Рестарт сервиса...")
         result = subprocess.run(
             ["systemctl", "restart", SERVICE_NAME],
             capture_output=True,
@@ -83,13 +83,13 @@ def restart_service():
             timeout=30
         )
         if result.returncode == 0:
-            print("✅ Сервис успешно перезапущен")
+            print("[OK] Сервис успешно перезапущен")
             return True
         else:
-            print(f"❌ Ошибка рестарта: {result.stderr}", file=sys.stderr)
+            print(f"[ERROR] Ошибка рестарта: {result.stderr}", file=sys.stderr)
             return False
     except Exception as e:
-        print(f"❌ Ошибка рестарта: {e}", file=sys.stderr)
+        print(f"[ERROR] Ошибка рестарта: {e}", file=sys.stderr)
         return False
 
 def get_logs(lines: int = 50):
@@ -103,7 +103,7 @@ def get_logs(lines: int = 50):
         )
         return result.stdout
     except Exception as e:
-        print(f"❌ Ошибка получения логов: {e}", file=sys.stderr)
+        print(f"[ERROR] Ошибка получения логов: {e}", file=sys.stderr)
         return ""
 
 def save_logs_to_file(logs: str):
@@ -114,34 +114,34 @@ def save_logs_to_file(logs: str):
         os.makedirs("/var/www/portfolio/logs", exist_ok=True)
         with open(log_file, "w", encoding="utf-8") as f:
             f.write(logs)
-        print(f"📝 Логи сохранены в {log_file}")
+        print(f"[LOGS] Логи сохранены в {log_file}")
         return log_file
     except Exception as e:
-        print(f"❌ Ошибка сохранения логов: {e}", file=sys.stderr)
+        print(f"[ERROR] Ошибка сохранения логов: {e}", file=sys.stderr)
         return None
 
 def main():
     """Главная функция"""
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     print(f"\n{'='*60}")
-    print(f"🔍 Мониторинг {SERVICE_NAME} - {timestamp}")
+    print(f"[MONITOR] Мониторинг {SERVICE_NAME} - {timestamp}")
     print(f"{'='*60}\n")
 
     # Проверка статуса сервиса
     service_active = check_service_status()
-    print(f"Статус сервиса: {'✅ Активен' if service_active else '❌ Неактивен'}")
+    print(f"Статус сервиса: {'[OK] Активен' if service_active else '[ERROR] Неактивен'}")
 
     # Проверка работоспособности сайта
     site_healthy = check_site_health()
-    print(f"Работоспособность сайта: {'✅ OK' if site_healthy else '❌ Недоступен'}")
+    print(f"Работоспособность сайта: {'[OK] OK' if site_healthy else '[ERROR] Недоступен'}")
 
     # Если все работает - завершаем
     if service_active and site_healthy:
-        print("\n✅ Сервис работает нормально")
+        print("\n[OK] Сервис работает нормально")
         sys.exit(0)
 
     # Сервис не работает - рестартуем
-    print("\n⚠️ Сервис не работает, начинаем восстановление...")
+    print("\n[WARNING] Сервис не работает, начинаем восстановление...")
 
     # Получаем логи до рестарта
     logs = get_logs(50)
@@ -159,7 +159,7 @@ def main():
         site_healthy = check_site_health()
 
         if service_active and site_healthy:
-            print("\n✅ Сервис успешно восстановлен")
+            print("\n[OK] Сервис успешно восстановлен")
 
             # Отправляем оповещение в Telegram
             message = f"""
@@ -174,7 +174,7 @@ def main():
             send_telegram_alert(message)
             sys.exit(0)
         else:
-            print("\n❌ Сервис не восстановился после рестарта")
+            print("\n[ERROR] Сервис не восстановился после рестарта")
             message = f"""
 🚨 <b>Критическая ошибка: Сервис {SERVICE_NAME} не восстанавливается</b>
 
@@ -187,7 +187,7 @@ def main():
             send_telegram_alert(message)
             sys.exit(1)
     else:
-        print("\n❌ Не удалось перезапустить сервис")
+        print("\n[ERROR] Не удалось перезапустить сервис")
         message = f"""
 🚨 <b>Критическая ошибка: Не удалось перезапустить {SERVICE_NAME}</b>
 
