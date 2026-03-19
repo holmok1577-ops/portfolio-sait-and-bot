@@ -404,6 +404,36 @@ async def clear_system_logs():
         raise HTTPException(status_code=500, detail=str(e))
 
 
+@app.get("/api/admin/crash-logs")
+async def get_crash_logs():
+    """Получение логов крашей (для админки)"""
+    try:
+        import glob
+        logs_dir = os.path.join(os.path.dirname(__file__), "..", "..", "logs")
+        crash_logs = glob.glob(os.path.join(logs_dir, "crash_*.log"))
+        
+        crash_logs_data = []
+        for log_file in sorted(crash_logs, reverse=True)[:10]:  # Последние 10 логов
+            try:
+                with open(log_file, "r", encoding="utf-8") as f:
+                    content = f.read()
+                crash_logs_data.append({
+                    "filename": os.path.basename(log_file),
+                    "content": content,
+                    "size": len(content)
+                })
+            except Exception as e:
+                logger.error(f"Ошибка чтения лога {log_file}: {e}")
+        
+        return {
+            "logs": crash_logs_data,
+            "total": len(crash_logs_data)
+        }
+    except Exception as e:
+        logger.error(f"Ошибка получения логов крашей: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @app.get("/api/admin/contact-forms")
 async def get_contact_forms(
     limit: int = 100,
