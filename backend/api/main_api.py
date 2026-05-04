@@ -5,6 +5,7 @@ FastAPI приложение — веб-сервер и API для AI ассис
 import os
 import time
 import io
+import re
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
 
@@ -65,6 +66,130 @@ db: Optional[DatabaseManager] = None
 alert_manager: Optional[AlertManager] = None
 health_checker: Optional[HealthChecker] = None
 
+# Состояние эскалации по пользователям веб-чата.
+# Хранится в памяти процесса: для MVP этого достаточно, история заявок сохраняется в БД.
+escalation_state: Dict[str, Dict[str, Any]] = {}
+
+
+def _get_escalation_state(user_id: str) -> Dict[str, Any]:
+    return escalation_state.setdefault(user_id or "web", {
+        "miss_count": 0,
+        "awaiting_contact": False,
+        "last_question": ""
+    })
+
+
+def _reset_escalation_state(user_id: str):
+    escalation_state[user_id or "web"] = {
+        "miss_count": 0,
+        "awaiting_contact": False,
+        "last_question": ""
+    }
+
+
+def _extract_contact_payload(text: str) -> Dict[str, str]:
+    email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", text or "")
+    phone_match = re.search(r"(\+?\d[\d\s().-]{7,}\d)", text or "")
+
+    email = email_match.group(0) if email_match else ""
+    phone = phone_match.group(0).strip() if phone_match else ""
+    name_text = text or ""
+    if email:
+        name_text = name_text.replace(email, " ")
+    if phone:
+        name_text = name_text.replace(phone, " ")
+    name_text = re.sub(r"\b(телефон|почта|email|имя|зовут|мой|моя)\b", " ", name_text, flags=re.IGNORECASE)
+    name = " ".join(name_text.split())[:80]
+
+    return {
+        "name": name or "Не указано",
+        "email": email or "Не указано",
+        "phone": phone or "Не указано",
+        "raw": text or ""
+    }
+
+
+async def _handle_contact_escalation(user_id: str, contact_text: str, request: Request = None) -> str:
+    state = _get_escalation_state(user_id)
+    contact = _extract_contact_payload(contact_text)
+    last_question = state.get("last_question", "")
+
+    message = (
+        f"Заявка из эскалации AI-ассистента\n\n"
+        f"Последний вопрос пользователя:\n{last_question}\n\n"
+        f"Контактные данные:\n{contact['raw']}\n\n"
+        f"Телефон: {contact['phone']}\n"
+        f"Email: {contact['email']}"
+    )
+
+    if db:
+        db.save_contact_form(
+            name=contact["name"],
+            email=contact["email"],
+            subject="AI escalation consultation",
+            message=message,
+            source_ip=request.client.host if request and request.client else None,
+            user_agent=request.headers.get("user-agent", "") if request else None
+        )
+
+    if alert_manager:
+        await alert_manager.send_alert(
+            f"<b>Новая заявка после эскалации</b>\n\n"
+            f"<b>Пользователь:</b> {user_id}\n"
+            f"<b>Имя:</b> {contact['name']}\n"
+            f"<b>Телефон:</b> {contact['phone']}\n"
+            f"<b>Email:</b> {contact['email']}\n\n"
+            f"<b>Вопрос:</b>\n{last_question[:800]}\n\n"
+            f"<b>Исходное сообщение с контактами:</b>\n{contact['raw'][:800]}",
+            "info",
+            force=True
+        )
+
+    _reset_escalation_state(user_id)
+    return (
+        "Спасибо, я передал заявку Станиславу. Он сможет посмотреть ваш вопрос "
+        "и связаться с вами по указанным контактам. Если хотите ускорить связь, "
+        "напишите напрямую в Telegram: @stanislav_prompt."
+    )
+
+
+def _apply_rag_escalation(user_id: str, query: str, answer: str, metadata: Dict[str, Any]) -> str:
+    if metadata.get("mode") != "rag":
+        _reset_escalation_state(user_id)
+        return answer
+
+    documents_used = metadata.get("documents_used")
+    if documents_used is None or documents_used > 0:
+        _reset_escalation_state(user_id)
+        return answer
+
+    state = _get_escalation_state(user_id)
+    state["miss_count"] += 1
+    state["last_question"] = query
+    metadata["escalation"] = f"missing_context_step_{state['miss_count']}"
+
+    if state["miss_count"] == 1:
+        return (
+            "Я не нашел точной информации по этому вопросу в базе знаний. "
+            "Попробуйте уточнить вопрос: например, указать, интересует ли вас RAG, "
+            "Telegram-бот, промпт-инжиниринг, стоимость, проекты или процесс работы."
+        )
+
+    if state["miss_count"] == 2:
+        return (
+            "Я снова не нашел подходящий ответ в базе знаний. Возможно, вопрос не относится "
+            "к моим компетенциям или в документах пока нет такой информации. "
+            "Можете переформулировать вопрос ближе к AI-ассистентам, RAG, ботам, "
+            "автоматизации или проектам Станислава."
+        )
+
+    state["awaiting_contact"] = True
+    return (
+        "Я не знаю точный ответ на этот вопрос по базе знаний. Могу записать вас "
+        "на консультацию к Станиславу: напишите одним сообщением ваше имя, телефон "
+        "и email. Я передам контакты и ваш последний вопрос в Telegram."
+    )
+
 
 async def log_critical_error(level: str, message: str, details: str = None, component: str = "backend"):
     """Логирование критической ошибки с отправкой в Telegram"""
@@ -104,10 +229,31 @@ async def lifespan(app: FastAPI):
             return
         
         # Получаем список файлов в папке
-        files = [f for f in os.listdir(rag_folder) if f.endswith(('.md', '.txt', '.pdf'))]
+        files = [f for f in os.listdir(rag_folder) if f.endswith(('.md', '.txt'))]
         if not files:
             logger.info(f"В папке {rag_folder} нет документов")
             return
+
+        existing_docs = embedding_store.get_all_documents(limit=1000)
+        existing_filenames = [
+            doc.get('metadata', {}).get('filename')
+            for doc in existing_docs
+            if isinstance(doc, dict)
+        ]
+        folder_filenames = set(files)
+
+        for doc in existing_docs:
+            metadata = doc.get('metadata', {}) if isinstance(doc, dict) else {}
+            filename = metadata.get('filename')
+            source = metadata.get('source')
+            category = metadata.get('category')
+            is_folder_doc = (
+                source == "rag_documents_folder"
+                or category == "portfolio_knowledge_base"
+            )
+            if is_folder_doc and filename and filename not in folder_filenames:
+                embedding_store.delete_document(doc["id"])
+                logger.info(f"Удален устаревший документ из RAG: {filename}")
         
         # Загружаем каждый файл
         loaded_count = 0
@@ -116,10 +262,6 @@ async def lifespan(app: FastAPI):
             try:
                 with open(filepath, 'r', encoding='utf-8') as f:
                     content = f.read()
-                
-                # Проверяем, не загружен ли уже документ
-                existing_docs = embedding_store.get_all_documents()
-                existing_filenames = [doc.get('metadata', {}).get('filename') if isinstance(doc, dict) else doc.metadata.get('filename') for doc in existing_docs]
                 
                 if filename in existing_filenames:
                     logger.info(f"Документ {filename} уже загружен")
@@ -130,7 +272,8 @@ async def lifespan(app: FastAPI):
                     "filename": filename,
                     "content_type": "text/markdown" if filename.endswith('.md') else "text/plain",
                     "uploaded_at": str(time.time()),
-                    "source": "rag_documents_folder"
+                    "source": os.path.splitext(filename)[0],
+                    "category": "portfolio_knowledge_base"
                 }
                 
                 doc_id = embedding_store.add_document(content, meta)
@@ -212,37 +355,62 @@ async def health_check():
 
 
 @app.post("/api/query", response_model=QueryResponse)
-async def process_query(request: QueryRequest):
+async def process_query(request_data: QueryRequest, request: Request):
     """Обработка запроса к AI ассистенту"""
     start_time = time.time()
     
     try:
+        user_id = request_data.user_id or "web"
+        state = _get_escalation_state(user_id)
+
+        if state.get("awaiting_contact"):
+            answer = await _handle_contact_escalation(user_id, request_data.query, request)
+            response_time_ms = int((time.time() - start_time) * 1000)
+            metadata = {
+                "mode": "rag",
+                "escalation": "contact_sent",
+                "response_time_ms": response_time_ms
+            }
+            db.log_interaction(
+                query=request_data.query,
+                response=answer,
+                source="web",
+                user_id=user_id,
+                mode="rag",
+                from_cache=False,
+                response_time_ms=response_time_ms,
+                metadata=metadata
+            )
+            return QueryResponse(answer=answer, mode="rag", metadata=metadata)
+
         # Проверка кэша
-        cached = cache.get(request.query) if cache else None
+        cached = cache.get(request_data.query) if cache else None
         
         if cached:
             answer = cached
-            metadata = {"from_cache": True, "mode": request.mode or "rag"}
+            metadata = {"from_cache": True, "mode": request_data.mode or "rag"}
         else:
             # Обработка через ассистент
             answer, metadata = assistant.process_query(
-                query=request.query,
-                user_id=request.user_id,
-                force_mode=request.mode
+                query=request_data.query,
+                user_id=user_id,
+                force_mode=request_data.mode
             )
+
+            answer = _apply_rag_escalation(user_id, request_data.query, answer, metadata)
             
             # Сохранение в кэш
-            if cache:
-                cache.set(request.query, answer, metadata)
+            if cache and not metadata.get("escalation"):
+                cache.set(request_data.query, answer, metadata)
         
         response_time_ms = int((time.time() - start_time) * 1000)
         
         # Логирование
         db.log_interaction(
-            query=request.query,
+            query=request_data.query,
             response=answer,
             source="web",
-            user_id=request.user_id,
+            user_id=user_id,
             mode=metadata.get("mode", "unknown"),
             from_cache=metadata.get("from_cache", False),
             response_time_ms=response_time_ms,

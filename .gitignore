@@ -79,6 +79,11 @@ temp/
 *.bak
 *.backup
 
+# Final course submission artifacts (local only)
+docs/final_project/
+scripts/build_final_project_assets.py
+scripts/build_final_project_presentation.mjs
+
 # Testing
 .pytest_cache/
 .coverage

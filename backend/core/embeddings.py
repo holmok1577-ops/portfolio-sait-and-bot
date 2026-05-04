@@ -137,11 +137,14 @@ class EmbeddingStore:
             documents = []
             if results["ids"] and results["ids"][0]:
                 for i, doc_id in enumerate(results["ids"][0]):
+                    distance = results["distances"][0][i] if results["distances"] else 1.0
+                    relevance_score = max(0.0, min(1.0, 1.0 - float(distance)))
                     documents.append({
                         "id": doc_id,
                         "text": results["documents"][0][i] if results["documents"] else "",
                         "metadata": results["metadatas"][0][i] if results["metadatas"] else {},
-                        "score": results["distances"][0][i] if results["distances"] else 0.0
+                        "score": relevance_score,
+                        "distance": distance
                     })
             
             return documents
@@ -204,6 +207,13 @@ class EmbeddingStore:
     def count(self) -> int:
         """Количество документов в коллекции"""
         return self.collection.count()
+
+    def persist(self) -> None:
+        """
+        Совместимость со старым кодом ChromaDB.
+        PersistentClient сохраняет данные автоматически, поэтому отдельное действие не требуется.
+        """
+        logger.debug("ChromaDB PersistentClient сохраняет данные автоматически")
 
 
 # Пример документов для начальной загрузки

@@ -13,7 +13,8 @@ from loguru import logger
 import uvicorn
 
 from config.settings import HOST, PORT, DEBUG, TELEGRAM_BOT_TOKEN
-from backend.api.main_api import app, embedding_store, assistant, cache, db, alert_manager, health_checker
+from backend.api.main_api import app
+import backend.api.main_api as main_api
 from backend.bot.telegram_bot import TelegramBot
 
 
@@ -29,15 +30,24 @@ class ApplicationManager:
         if not TELEGRAM_BOT_TOKEN:
             logger.warning("TELEGRAM_BOT_TOKEN не настроен, бот не будет запущен")
             return
+
+        for _ in range(30):
+            if main_api.assistant and main_api.cache and main_api.db:
+                break
+            await asyncio.sleep(1)
+
+        if not main_api.assistant:
+            logger.warning("AI ассистент еще не инициализирован, Telegram бот не будет запущен")
+            return
         
         try:
-            self.telegram_bot = TelegramBot(assistant, cache, db)
+            self.telegram_bot = TelegramBot(main_api.assistant, main_api.cache, main_api.db)
             await self.telegram_bot.start_async()
             logger.info("✅ Telegram бот запущен")
         except Exception as e:
             logger.error(f"❌ Ошибка запуска Telegram бота: {e}")
-            if alert_manager:
-                await alert_manager.send_error_alert("Telegram Bot", str(e))
+            if main_api.alert_manager:
+                await main_api.alert_manager.send_error_alert("Telegram Bot", str(e))
     
     async def stop_telegram_bot(self):
         """Остановка Telegram бота"""
@@ -50,8 +60,8 @@ class ApplicationManager:
     
     async def start_monitoring(self):
         """Запуск мониторинга"""
-        if health_checker:
-            asyncio.create_task(health_checker.start_monitoring())
+        if main_api.health_checker:
+            asyncio.create_task(main_api.health_checker.start_monitoring())
     
     def setup_signal_handlers(self):
         """Настройка обработчиков сигналов"""
@@ -79,11 +89,11 @@ class ApplicationManager:
         logger.info("Выполняется graceful shutdown...")
         await self.stop_telegram_bot()
         
-        if health_checker:
-            health_checker.stop_monitoring()
+        if main_api.health_checker:
+            main_api.health_checker.stop_monitoring()
         
-        if embedding_store:
-            embedding_store.persist()
+        if main_api.embedding_store:
+            main_api.embedding_store.persist()
         
         logger.info("✅ Приложение остановлено")
 
