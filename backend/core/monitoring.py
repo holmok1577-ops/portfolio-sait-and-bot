@@ -55,7 +55,8 @@ class AlertManager:
             
             full_message = f"{emoji} <b>{alert_type.upper()}</b>\n\n{message}\n\n📅 {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
             
-            async with aiohttp.ClientSession() as session:
+            timeout = aiohttp.ClientTimeout(total=8)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
                 async with session.post(url, json={
                     "chat_id": self.admin_id,
                     "text": full_message,
