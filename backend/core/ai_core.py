@@ -141,6 +141,34 @@ class RAGProcessor:
         self.embedding_store = embedding_store
         self.ai_core = AICore(embedding_store)
         logger.info("RAG Processor инициализирован")
+
+    @staticmethod
+    def _format_source_name(source: str) -> str:
+        """Делает техническое имя документа читаемым для пользователя."""
+        source = (source or "unknown").strip()
+        if source == "unknown":
+            return "база знаний"
+
+        return source.replace("_", " ").replace("-", " ")
+
+    def _append_sources(self, answer: str, docs: List[Dict[str, Any]]) -> str:
+        sources = []
+        for doc in docs:
+            metadata = doc.get("metadata", {})
+            source = metadata.get("source") or metadata.get("filename") or "unknown"
+            source = self._format_source_name(source)
+            if source not in sources:
+                sources.append(source)
+
+        if not sources:
+            return answer
+
+        lowered = answer.lower()
+        if "источник:" in lowered or "источники:" in lowered:
+            return answer
+
+        label = "Источник" if len(sources) == 1 else "Источники"
+        return f"{answer.rstrip()}\n\n{label}: {', '.join(sources)}"
     
     def process_query(
         self, 
@@ -189,6 +217,8 @@ class RAGProcessor:
             "documents_used": len(relevant_docs),
             "sources": [doc.get('metadata', {}).get('source', 'unknown') for doc in relevant_docs]
         }
+
+        answer = self._append_sources(answer, relevant_docs)
         
         return answer, metadata
 
