@@ -10,8 +10,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Логирование для проверки загрузки .env файла
-import sys
-print(f"RAG_SIMILARITY_THRESHOLD from env: {os.getenv('RAG_SIMILARITY_THRESHOLD')}", file=sys.stderr)
 
 # Базовые пути
 BASE_DIR = Path(__file__).parent.parent
@@ -34,14 +32,14 @@ DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR}/app.db")
 LOGS_DB_PATH = str(DATA_DIR / "logs.db")
 
 # Настройки AI
-AI_MODEL = os.getenv("AI_MODEL", "gpt-3.5-turbo")
+AI_MODEL = os.getenv("AI_MODEL", "gpt-4o-mini")
 AI_TEMPERATURE = float(os.getenv("AI_TEMPERATURE", "0.7"))
 EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 PROXY_API_BASE = os.getenv("PROXY_API_BASE", "https://api.proxyapi.ru/openai/v1")
 
 # Настройки RAG
 RAG_TOP_K = int(os.getenv("RAG_TOP_K", "3"))
-RAG_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.6"))
+RAG_SIMILARITY_THRESHOLD = float(os.getenv("RAG_SIMILARITY_THRESHOLD", "0.45"))
 
 # Настройки сервера
 HOST = os.getenv("HOST", "0.0.0.0")
