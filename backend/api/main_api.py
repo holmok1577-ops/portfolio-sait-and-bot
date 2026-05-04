@@ -6,6 +6,7 @@ import os
 import time
 import io
 import re
+import asyncio
 from typing import Optional, List, Dict, Any
 from contextlib import asynccontextmanager
 
@@ -109,6 +110,23 @@ def _extract_contact_payload(text: str) -> Dict[str, str]:
     }
 
 
+def _send_alert_background(message: str, alert_type: str = "info", force: bool = False) -> None:
+    """Отправляет Telegram-уведомление без блокировки ответа пользователю."""
+    if not alert_manager:
+        return
+
+    async def _send():
+        try:
+            await alert_manager.send_alert(message, alert_type, force=force)
+        except Exception as exc:
+            logger.error(f"Ошибка фоновой отправки алерта: {exc}")
+
+    try:
+        asyncio.create_task(_send())
+    except RuntimeError as exc:
+        logger.error(f"Не удалось создать задачу отправки алерта: {exc}")
+
+
 async def _handle_contact_escalation(user_id: str, contact_text: str, request: Request = None) -> str:
     state = _get_escalation_state(user_id)
     contact = _extract_contact_payload(contact_text)
@@ -133,7 +151,7 @@ async def _handle_contact_escalation(user_id: str, contact_text: str, request: R
         )
 
     if alert_manager:
-        await alert_manager.send_alert(
+        _send_alert_background(
             f"<b>Новая заявка после эскалации</b>\n\n"
             f"<b>Пользователь:</b> {user_id}\n"
             f"<b>Имя:</b> {contact['name']}\n"
@@ -494,9 +512,10 @@ async def submit_contact_form(
             user_agent=user_agent
         )
         
-        # Уведомление админу
+        # Уведомление админу отправляем в фоне: заявка уже сохранена в БД,
+        # а проблемы с Telegram не должны замедлять ответ пользователю.
         if alert_manager:
-            await alert_manager.send_alert(
+            _send_alert_background(
                 f"📧 *Новая заявка с сайта*\n\n"
                 f"*От:* {form_data.name}\n"
                 f"*Email:* {form_data.email}\n"
