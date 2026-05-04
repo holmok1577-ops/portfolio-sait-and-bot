@@ -47,6 +47,7 @@ class ModeSwitchRequest(BaseModel):
 class ContactFormRequest(BaseModel):
     name: str
     email: str
+    phone: Optional[str] = None
     service: Optional[str] = None  # услуга из селекта
     message: str
 
@@ -127,6 +128,16 @@ def _send_alert_background(message: str, alert_type: str = "info", force: bool =
         logger.error(f"Не удалось создать задачу отправки алерта: {exc}")
 
 
+def _log_system_event(level: str, component: str, message: str, details: Optional[Dict[str, Any]] = None) -> None:
+    """Пишет системное событие в БД, если менеджер БД уже инициализирован."""
+    if not db:
+        return
+    try:
+        db.log_system_event(level=level, component=component, message=message, details=details)
+    except Exception as exc:
+        logger.error(f"Ошибка записи системного лога: {exc}")
+
+
 async def _handle_contact_escalation(user_id: str, contact_text: str, request: Request = None) -> str:
     state = _get_escalation_state(user_id)
     contact = _extract_contact_payload(contact_text)
@@ -144,6 +155,7 @@ async def _handle_contact_escalation(user_id: str, contact_text: str, request: R
         db.save_contact_form(
             name=contact["name"],
             email=contact["email"],
+            phone=contact["phone"],
             subject="AI escalation consultation",
             message=message,
             source_ip=request.client.host if request and request.client else None,
@@ -211,13 +223,13 @@ def _apply_rag_escalation(user_id: str, query: str, answer: str, metadata: Dict[
 
 async def log_critical_error(level: str, message: str, details: str = None, component: str = "backend"):
     """Логирование критической ошибки с отправкой в Telegram"""
+    _log_system_event(level=level, component=component, message=message, details={"details": details} if details else None)
     try:
         if alert_manager and level in ["error", "critical"]:
             await alert_manager.send_error_alert(
-                level=level,
-                message=message,
-                details=details,
-                component=component
+                component=component,
+                error=message,
+                details=details
             )
     except Exception as e:
         logger.error(f"Ошибка отправки алерта: {e}")
@@ -234,6 +246,7 @@ async def lifespan(app: FastAPI):
     # Инициализация компонентов
     db = DatabaseManager()
     cache = ResponseCache()
+    _log_system_event("info", "startup", "Инициализация приложения началась")
     
     # Векторное хранилище
     embedding_store = EmbeddingStore()
@@ -330,7 +343,10 @@ async def lifespan(app: FastAPI):
         "vector_db": "ok",
         "ai_service": "ok"
     })
-    
+    _log_system_event("info", "startup", "Приложение готово к работе", {
+        "documents_count": embedding_store.count(),
+        "version": APP_VERSION
+    })
     logger.info("✅ Приложение готово к работе")
     
     yield
@@ -339,6 +355,7 @@ async def lifespan(app: FastAPI):
     logger.info("🛑 Завершение работы...")
     if health_checker:
         health_checker.stop_monitoring()
+    _log_system_event("info", "shutdown", "Приложение остановлено")
     logger.info("👋 Приложение остановлено")
 
 
@@ -506,6 +523,7 @@ async def submit_contact_form(
         form_id = db.save_contact_form(
             name=form_data.name,
             email=form_data.email,
+            phone=form_data.phone,
             subject=form_data.service,
             message=form_data.message,
             source_ip=client_ip,
@@ -519,10 +537,17 @@ async def submit_contact_form(
                 f"📧 *Новая заявка с сайта*\n\n"
                 f"*От:* {form_data.name}\n"
                 f"*Email:* {form_data.email}\n"
+                f"*Телефон:* {form_data.phone or 'Не указан'}\n"
                 f"*Тема:* {form_data.service or 'Без темы'}\n\n"
                 f"_Сообщение:_\n{form_data.message[:300]}...",
                 "info"
             )
+        _log_system_event("info", "contact_form", "Получена новая заявка с сайта", {
+            "form_id": form_id,
+            "email": form_data.email,
+            "service": form_data.service,
+            "has_phone": bool(form_data.phone)
+        })
         
         return {
             "status": "ok",

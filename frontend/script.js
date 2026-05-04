@@ -242,6 +242,7 @@ async function submitContactForm(e) {
         const formData = {
             name: document.getElementById('name')?.value || document.getElementById('formName')?.value,
             email: document.getElementById('email')?.value || document.getElementById('formEmail')?.value,
+            phone: document.getElementById('phone')?.value || document.getElementById('formPhone')?.value,
             service: document.getElementById('service')?.value || document.getElementById('formService')?.value,
             message: document.getElementById('message')?.value || document.getElementById('formMessage')?.value
         };

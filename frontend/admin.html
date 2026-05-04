@@ -1466,7 +1466,7 @@
         function renderSystemLogs(logs) {
             const container = document.getElementById('systemLogsList');
             if (logs.length === 0) {
-                container.innerHTML = `<div class="empty-state"><i class="fas fa-check-circle"></i><p>Нет системных ошибок</p></div>`;
+                container.innerHTML = `<div class="empty-state"><i class="fas fa-clipboard-check"></i><p>Системных логов пока нет</p></div>`;
                 return;
             }
             container.innerHTML = `
@@ -1475,6 +1475,7 @@
                         <tr>
                             <th>Время</th>
                             <th>Уровень</th>
+                            <th>Компонент</th>
                             <th>Сообщение</th>
                             <th>Детали</th>
                         </tr>
@@ -1484,6 +1485,7 @@
                             <tr class="${log.level === 'error' || log.level === 'critical' ? 'error-row' : ''}">
                                 <td>${new Date(log.timestamp).toLocaleString()}</td>
                                 <td><span class="badge ${log.level}">${log.level}</span></td>
+                                <td>${log.component || '-'}</td>
                                 <td>${log.message}</td>
                                 <td>${log.details || '-'}</td>
                             </tr>
@@ -1606,6 +1608,7 @@
                             <th>Время</th>
                             <th>Имя</th>
                             <th>Email</th>
+                            <th>Телефон</th>
                             <th>Тема</th>
                             <th>Сообщение</th>
                         </tr>
@@ -1616,6 +1619,7 @@
                                 <td>${new Date(form.timestamp || form.date).toLocaleString()}</td>
                                 <td>${form.name}</td>
                                 <td>${form.email}</td>
+                                <td>${form.phone || '-'}</td>
                                 <td>${form.subject || '-'}</td>
                                 <td>${form.message ? form.message.substring(0, 100) + (form.message.length > 100 ? '...' : '') : '-'}</td>
                             </tr>

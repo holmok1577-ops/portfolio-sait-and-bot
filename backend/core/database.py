@@ -102,6 +102,16 @@ class DatabaseManager:
             conn.execute("CREATE INDEX IF NOT EXISTS idx_interactions_user ON interactions(user_id)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_system_logs_time ON system_logs(timestamp)")
             conn.execute("CREATE INDEX IF NOT EXISTS idx_health_time ON health_metrics(timestamp)")
+            self._apply_schema_migrations(conn)
+
+    def _apply_schema_migrations(self, conn):
+        """Легкие миграции SQLite без Alembic для MVP/production."""
+        contact_columns = {
+            row["name"]
+            for row in conn.execute("PRAGMA table_info(contact_forms)").fetchall()
+        }
+        if "phone" not in contact_columns:
+            conn.execute("ALTER TABLE contact_forms ADD COLUMN phone TEXT")
     
     def log_interaction(
         self,
@@ -189,6 +199,7 @@ class DatabaseManager:
         name: str,
         email: str,
         message: str,
+        phone: str = None,
         subject: str = None,
         source_ip: str = None,
         user_agent: str = None
@@ -198,12 +209,13 @@ class DatabaseManager:
             with self._get_connection() as conn:
                 cursor = conn.execute("""
                     INSERT INTO contact_forms 
-                    (timestamp, name, email, subject, message, source_ip, user_agent)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    (timestamp, name, email, phone, subject, message, source_ip, user_agent)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 """, (
                     datetime.now().isoformat(),
                     name,
                     email,
+                    phone,
                     subject,
                     message,
                     source_ip,
@@ -226,6 +238,7 @@ class DatabaseManager:
                 timestamp,
                 name,
                 email,
+                phone,
                 subject,
                 message,
                 source_ip,
@@ -278,15 +291,16 @@ class DatabaseManager:
         self,
         level: str,
         message: str,
-        details: str = None
+        details: str = None,
+        component: str = "backend"
     ) -> int:
         """Сохранение системного лога"""
         timestamp = datetime.now().isoformat()
         with self._get_connection() as conn:
             cursor = conn.execute("""
-                INSERT INTO system_logs (timestamp, level, message, details)
-                VALUES (?, ?, ?, ?)
-            """, (timestamp, level, message, details))
+                INSERT INTO system_logs (timestamp, level, component, message, details)
+                VALUES (?, ?, ?, ?, ?)
+            """, (timestamp, level, component, message, details))
             return cursor.lastrowid
     
     def get_system_logs(

@@ -26,6 +26,7 @@ for dir_path in [DATA_DIR, LOGS_DIR, CHROMA_DIR]:
 PROXY_API_KEY = os.getenv("PROXY_API_KEY", "")
 TELEGRAM_BOT_TOKEN = os.getenv("TELEGRAM_BOT_TOKEN", "")
 ADMIN_TELEGRAM_ID = os.getenv("ADMIN_TELEGRAM_ID", "")
+TELEGRAM_ALERT_CHAT_ID = os.getenv("TELEGRAM_ALERT_CHAT_ID", ADMIN_TELEGRAM_ID)
 
 # Настройки базы данных
 DATABASE_URL = os.getenv("DATABASE_URL", f"sqlite:///{DATA_DIR}/app.db")

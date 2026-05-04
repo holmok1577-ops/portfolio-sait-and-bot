@@ -10,7 +10,7 @@ from typing import Dict, Any, Optional
 from loguru import logger
 
 from config.settings import (
-    TELEGRAM_BOT_TOKEN, ADMIN_TELEGRAM_ID,
+    TELEGRAM_BOT_TOKEN, ADMIN_TELEGRAM_ID, TELEGRAM_ALERT_CHAT_ID,
     HEALTH_CHECK_INTERVAL, ALERT_COOLDOWN, AUTO_RESTART
 )
 
@@ -20,7 +20,7 @@ class AlertManager:
     
     def __init__(self):
         self.bot_token = TELEGRAM_BOT_TOKEN
-        self.admin_id = ADMIN_TELEGRAM_ID
+        self.admin_id = TELEGRAM_ALERT_CHAT_ID or ADMIN_TELEGRAM_ID
         self.last_alerts: Dict[str, datetime] = {}
         self.alert_cooldown = timedelta(seconds=ALERT_COOLDOWN)
         
@@ -208,6 +208,12 @@ class HealthChecker:
         
         # Уведомления о изменении статуса
         if old_status != new_status:
+            self.db.log_system_event(
+                level="error" if new_status == "error" else "info",
+                component=component,
+                message=f"Статус компонента изменен: {old_status} -> {new_status}",
+                details={"error": error, "response_time_ms": response_time}
+            )
             if new_status == "error" and component not in self.failed_components:
                 self.failed_components.add(component)
                 asyncio.create_task(
