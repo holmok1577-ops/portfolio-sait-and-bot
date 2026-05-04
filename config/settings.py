@@ -54,6 +54,7 @@ ADMIN_PASSWORD = os.getenv("ADMIN_PASSWORD", "admin")
 
 # Настройки мониторинга
 HEALTH_CHECK_INTERVAL = int(os.getenv("HEALTH_CHECK_INTERVAL", "60"))
+HEALTH_FAILURE_THRESHOLD = int(os.getenv("HEALTH_FAILURE_THRESHOLD", "3"))
 ALERT_COOLDOWN = int(os.getenv("ALERT_COOLDOWN", "300"))  # 5 минут между алертами
 AUTO_RESTART = os.getenv("AUTO_RESTART", "true").lower() == "true"
 

@@ -11,7 +11,7 @@ from loguru import logger
 
 from config.settings import (
     TELEGRAM_BOT_TOKEN, ADMIN_TELEGRAM_ID, TELEGRAM_ALERT_CHAT_ID,
-    HEALTH_CHECK_INTERVAL, ALERT_COOLDOWN, AUTO_RESTART
+    HEALTH_CHECK_INTERVAL, HEALTH_FAILURE_THRESHOLD, ALERT_COOLDOWN, AUTO_RESTART
 )
 
 
@@ -111,6 +111,7 @@ class HealthChecker:
             "vector_db": {"status": "unknown", "last_check": None}
         }
         self.failed_components: set = set()
+        self.failure_counts: Dict[str, int] = {component: 0 for component in self.components}
         self._running = False
         
         logger.info("HealthChecker инициализирован")
@@ -139,14 +140,18 @@ class HealthChecker:
         
         try:
             url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/getMe"
-            async with aiohttp.ClientSession() as session:
-                async with session.get(url, timeout=10) as response:
+            start_time = time.time()
+            timeout = aiohttp.ClientTimeout(total=15)
+            async with aiohttp.ClientSession(timeout=timeout) as session:
+                async with session.get(url) as response:
+                    response_time = int((time.time() - start_time) * 1000)
                     is_healthy = response.status == 200
-                    self._update_component_status("telegram_bot", is_healthy)
+                    error = None if is_healthy else f"Telegram API returned HTTP {response.status}"
+                    self._update_component_status("telegram_bot", is_healthy, response_time, error=error)
                     return is_healthy
                     
         except Exception as e:
-            self._update_component_status("telegram_bot", False, error=str(e))
+            self._update_component_status("telegram_bot", False, error=repr(e))
             return False
     
     async def check_ai_service(self) -> bool:
@@ -189,13 +194,25 @@ class HealthChecker:
                                   response_time: int = 0, error: str = None):
         """Обновление статуса компонента"""
         old_status = self.components[component]["status"]
-        new_status = "ok" if is_healthy else "error"
+        if is_healthy:
+            self.failure_counts[component] = 0
+        else:
+            self.failure_counts[component] = self.failure_counts.get(component, 0) + 1
+
+        failure_count = self.failure_counts.get(component, 0)
+        new_status = "ok" if is_healthy or failure_count < HEALTH_FAILURE_THRESHOLD else "error"
+        if not is_healthy and new_status == "ok":
+            logger.warning(
+                f"Transient health failure for {component}: "
+                f"{failure_count}/{HEALTH_FAILURE_THRESHOLD}, error={error}"
+            )
         
         self.components[component].update({
             "status": new_status,
             "last_check": datetime.now().isoformat(),
             "response_time_ms": response_time,
-            "error": error
+            "error": error,
+            "failure_count": failure_count
         })
         
         # Логирование в БД
@@ -203,7 +220,7 @@ class HealthChecker:
             component=component,
             status=new_status,
             response_time_ms=response_time,
-            details={"error": error} if error else None
+            details={"error": error, "failure_count": failure_count} if error else None
         )
         
         # Уведомления о изменении статуса
