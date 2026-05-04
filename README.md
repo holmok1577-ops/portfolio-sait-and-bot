@@ -120,7 +120,7 @@ docker-compose --profile with-nginx up -d
 
 1. Подключитесь к серверу:
 ```bash
-ssh root@95.81.123.214
+ssh <user>@<server-host>
 ```
 
 2. Выполните команды из скрипта deploy.sh

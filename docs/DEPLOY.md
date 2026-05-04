@@ -4,7 +4,7 @@
 
 - Python 3.8.10 (для тестирования)
 - Docker и Docker Compose
-- Доступ к серверу: `ssh root@95.81.123.214`
+- Доступ к серверу: `ssh <user>@<server-host>`
 - Git репозиторий: `https://github.com/holmok1577-ops/portfolio-sait-and-bot`
 
 ## Шаг 1: Локальное тестирование
@@ -52,7 +52,7 @@ git push -u origin main
 
 ```bash
 # 3.1 Подключение к серверу
-ssh root@95.81.123.214
+ssh <user>@<server-host>
 
 # 3.2 Обновление системы
 apt-get update && apt-get upgrade -y
@@ -157,15 +157,15 @@ docker-compose exec app python scripts/upload_docs.py docs/ --batch
 
 ```bash
 # 8.1 Проверка компонентов
-curl http://95.81.123.214:8000/health
+curl http://<server-host>:8000/health
 
 # 8.2 Проверка API
-curl -X POST http://95.81.123.214:8000/api/query \
+curl -X POST http://<server-host>:8000/api/query \
   -H "Content-Type: application/json" \
   -d '{"query": "Привет", "user_id": "test"}'
 
 # 8.3 Проверка сайта
-# Откройте в браузере: http://95.81.123.214:8000
+# Откройте в браузере: http://<server-host>:8000
 
 # 8.4 Проверка Telegram бота
 # Напишите боту: /start
@@ -187,7 +187,7 @@ curl -X POST http://95.81.123.214:8000/api/query \
 apt-get install certbot
 
 # Получение сертификата
-certbot certonly --standalone -d your-domain.com
+certbot certonly --standalone -d <your-domain.example>
 
 # Настройка nginx (если используется)
 # См. nginx.conf для конфигурации
@@ -276,7 +276,7 @@ curl http://localhost:8000/api/admin/export/interactions > logs.csv
 - [ ] `.env` настроен с реальными ключами
 - [ ] Документы загружены в RAG
 - [ ] Git push выполнен
-- [ ] Доступ к серверу проверен (`ssh root@95.81.123.214`)
+- [ ] Доступ к серверу проверен (`ssh <user>@<server-host>`)
 - [ ] Домен настроен (если используется)
 
 ## Контакты для поддержки
