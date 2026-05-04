@@ -119,6 +119,28 @@ def _build_greeting_answer(user_id: str) -> str:
     )
 
 
+def _is_capabilities_query(query: str) -> bool:
+    normalized = " ".join((query or "").lower().replace("?", " ").replace("!", " ").split())
+    return any(phrase in normalized for phrase in [
+        "что ты умеешь",
+        "чем ты можешь помочь",
+        "что можешь",
+        "какие вопросы",
+        "о чем спросить",
+    ])
+
+
+def _build_capabilities_answer(user_id: str) -> str:
+    _reset_escalation_state(user_id)
+    return (
+        "Я могу рассказать о компетенциях и проектах Станислава, объяснить, что такое "
+        "AI-ассистенты, RAG, промпт-инжиниринг и Telegram-боты, подсказать по срокам, "
+        "стоимости, процессу работы и вариантам внедрения. Если вопрос требует обсуждения "
+        "деталей проекта, предложу оставить заявку или написать Станиславу напрямую.\n\n"
+        "Источники: 01 profile stanislav, 15 client faq"
+    )
+
+
 def _extract_contact_payload(text: str) -> Dict[str, str]:
     email_match = re.search(r"[\w\.-]+@[\w\.-]+\.\w+", text or "")
     phone_match = re.search(r"(\+?\d[\d\s().-]{7,}\d)", text or "")
@@ -426,13 +448,16 @@ async def process_query(request_data: QueryRequest, request: Request):
     
     try:
         user_id = request_data.user_id or "web"
+        current_mode = request_data.mode or assistant.get_mode(user_id)
+        cache_namespace = f"mode:{current_mode}"
+        use_cache = current_mode == "rag"
         state = _get_escalation_state(user_id)
 
-        if _is_greeting(request_data.query):
+        if current_mode == "rag" and _is_greeting(request_data.query):
             answer = _build_greeting_answer(user_id)
             response_time_ms = int((time.time() - start_time) * 1000)
             metadata = {
-                "mode": "rag",
+                "mode": current_mode,
                 "intent": "greeting",
                 "documents_used": 0,
                 "response_time_ms": response_time_ms
@@ -442,14 +467,36 @@ async def process_query(request_data: QueryRequest, request: Request):
                 response=answer,
                 source="web",
                 user_id=user_id,
-                mode="rag",
+                mode=current_mode,
                 from_cache=False,
                 response_time_ms=response_time_ms,
                 metadata=metadata
             )
-            return QueryResponse(answer=answer, mode="rag", metadata=metadata)
+            return QueryResponse(answer=answer, mode=current_mode, metadata=metadata)
 
-        if state.get("awaiting_contact"):
+        if current_mode == "rag" and _is_capabilities_query(request_data.query):
+            answer = _build_capabilities_answer(user_id)
+            response_time_ms = int((time.time() - start_time) * 1000)
+            metadata = {
+                "mode": current_mode,
+                "intent": "capabilities",
+                "documents_used": 1,
+                "sources": ["01_profile_stanislav", "15_client_faq"],
+                "response_time_ms": response_time_ms
+            }
+            db.log_interaction(
+                query=request_data.query,
+                response=answer,
+                source="web",
+                user_id=user_id,
+                mode=current_mode,
+                from_cache=False,
+                response_time_ms=response_time_ms,
+                metadata=metadata
+            )
+            return QueryResponse(answer=answer, mode=current_mode, metadata=metadata)
+
+        if current_mode == "rag" and state.get("awaiting_contact"):
             answer = await _handle_contact_escalation(user_id, request_data.query, request)
             response_time_ms = int((time.time() - start_time) * 1000)
             metadata = {
@@ -468,10 +515,6 @@ async def process_query(request_data: QueryRequest, request: Request):
                 metadata=metadata
             )
             return QueryResponse(answer=answer, mode="rag", metadata=metadata)
-
-        current_mode = request_data.mode or assistant.get_mode(user_id)
-        cache_namespace = f"mode:{current_mode}"
-        use_cache = current_mode == "rag"
 
         # Проверка кэша
         cached = cache.get(request_data.query, namespace=cache_namespace) if cache and use_cache else None
