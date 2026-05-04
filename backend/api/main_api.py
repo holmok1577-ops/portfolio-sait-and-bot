@@ -72,6 +72,16 @@ health_checker: Optional[HealthChecker] = None
 # Хранится в памяти процесса: для MVP этого достаточно, история заявок сохраняется в БД.
 escalation_state: Dict[str, Dict[str, Any]] = {}
 
+GREETING_MESSAGES = {
+    "привет",
+    "здравствуйте",
+    "добрый день",
+    "доброе утро",
+    "добрый вечер",
+    "hello",
+    "hi",
+}
+
 
 def _get_escalation_state(user_id: str) -> Dict[str, Any]:
     return escalation_state.setdefault(user_id or "web", {
@@ -87,6 +97,26 @@ def _reset_escalation_state(user_id: str):
         "awaiting_contact": False,
         "last_question": ""
     }
+
+
+def _is_greeting(query: str) -> bool:
+    normalized = " ".join(
+        (query or "")
+        .lower()
+        .replace("!", " ")
+        .replace(".", " ")
+        .replace(",", " ")
+        .split()
+    )
+    return normalized in GREETING_MESSAGES
+
+
+def _build_greeting_answer(user_id: str) -> str:
+    _reset_escalation_state(user_id)
+    return (
+        "Привет! Я AI-ассистент Станислава. Могу ответить на вопросы о проектах, "
+        "услугах, RAG, Telegram-ботах, промпт-инжиниринге, стоимости и процессе работы."
+    )
 
 
 def _extract_contact_payload(text: str) -> Dict[str, str]:
@@ -397,6 +427,27 @@ async def process_query(request_data: QueryRequest, request: Request):
     try:
         user_id = request_data.user_id or "web"
         state = _get_escalation_state(user_id)
+
+        if _is_greeting(request_data.query):
+            answer = _build_greeting_answer(user_id)
+            response_time_ms = int((time.time() - start_time) * 1000)
+            metadata = {
+                "mode": "rag",
+                "intent": "greeting",
+                "documents_used": 0,
+                "response_time_ms": response_time_ms
+            }
+            db.log_interaction(
+                query=request_data.query,
+                response=answer,
+                source="web",
+                user_id=user_id,
+                mode="rag",
+                from_cache=False,
+                response_time_ms=response_time_ms,
+                metadata=metadata
+            )
+            return QueryResponse(answer=answer, mode="rag", metadata=metadata)
 
         if state.get("awaiting_contact"):
             answer = await _handle_contact_escalation(user_id, request_data.query, request)

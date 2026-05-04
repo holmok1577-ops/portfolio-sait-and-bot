@@ -3,6 +3,7 @@
 Ядро AI ассистента с поддержкой RAG и обычного режима
 """
 import os
+import re
 import time
 from typing import List, Tuple, Optional, Dict, Any
 from loguru import logger
@@ -143,6 +144,21 @@ class RAGProcessor:
         logger.info("RAG Processor инициализирован")
 
     @staticmethod
+    def _expand_query(query: str) -> str:
+        expanded = query.strip()
+        replacements = {
+            r"\bии\b": "ии искусственный интеллект AI artificial intelligence",
+            r"\bai\b": "ai искусственный интеллект artificial intelligence",
+            r"\bраг\b": "раг RAG retrieval augmented generation",
+        }
+
+        for pattern, replacement in replacements.items():
+            if re.search(pattern, expanded, flags=re.IGNORECASE):
+                expanded = f"{expanded} {replacement}"
+
+        return expanded
+
+    @staticmethod
     def _format_source_name(source: str) -> str:
         """Делает техническое имя документа читаемым для пользователя."""
         source = (source or "unknown").strip()
@@ -185,10 +201,11 @@ class RAGProcessor:
         top_k = top_k or RAG_TOP_K
         threshold = similarity_threshold or RAG_SIMILARITY_THRESHOLD
         
-        logger.info(f"RAG запрос: '{query}', top_k={top_k}, threshold={threshold}")
+        search_query = self._expand_query(query)
+        logger.info(f"RAG запрос: '{query}', search_query='{search_query}', top_k={top_k}, threshold={threshold}")
         
         # Поиск релевантных документов
-        search_results = self.embedding_store.search(query, top_k=top_k)
+        search_results = self.embedding_store.search(search_query, top_k=top_k)
         logger.info(f"Найдено документов: {len(search_results)}")
         
         # Фильтрация по порогу схожести
