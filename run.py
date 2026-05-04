@@ -23,7 +23,7 @@ class ApplicationManager:
     
     def __init__(self):
         self.telegram_bot = None
-        self.shutdown_event = asyncio.Event()
+        self.shutdown_event = None
         
     async def start_telegram_bot(self):
         """Запуск Telegram бота"""
@@ -74,6 +74,9 @@ class ApplicationManager:
     
     async def run(self):
         """Основной цикл приложения"""
+        if self.shutdown_event is None:
+            self.shutdown_event = asyncio.Event()
+
         self.setup_signal_handlers()
         
         # Запуск Telegram бота
