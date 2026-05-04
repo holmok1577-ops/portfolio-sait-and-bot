@@ -254,9 +254,11 @@ class TelegramBot:
         try:
             # Получаем режим пользователя
             mode = self.assistant.get_mode(str(user_id))
+            cache_namespace = f"mode:{mode}"
+            use_cache = mode == "rag"
             
             # Проверяем кэш
-            cached = self.cache.get(message_text)
+            cached = self.cache.get(message_text, namespace=cache_namespace) if use_cache else None
             from_cache = cached is not None
             
             if cached:
@@ -268,8 +270,9 @@ class TelegramBot:
                     user_id=str(user_id)
                 )
                 
-                # Сохраняем в кэш
-                self.cache.set(message_text, answer, metadata)
+                # Сохраняем в кэш только RAG-ответы: обычный AI-режим зависит от истории диалога.
+                if use_cache:
+                    self.cache.set(message_text, answer, metadata, namespace=cache_namespace)
             
             response_time = int((asyncio.get_event_loop().time() - start_time) * 1000)
             

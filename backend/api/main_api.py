@@ -469,12 +469,16 @@ async def process_query(request_data: QueryRequest, request: Request):
             )
             return QueryResponse(answer=answer, mode="rag", metadata=metadata)
 
+        current_mode = request_data.mode or assistant.get_mode(user_id)
+        cache_namespace = f"mode:{current_mode}"
+        use_cache = current_mode == "rag"
+
         # Проверка кэша
-        cached = cache.get(request_data.query) if cache else None
+        cached = cache.get(request_data.query, namespace=cache_namespace) if cache and use_cache else None
         
         if cached:
             answer = cached
-            metadata = {"from_cache": True, "mode": request_data.mode or "rag"}
+            metadata = {"from_cache": True, "mode": current_mode}
         else:
             # Обработка через ассистент
             answer, metadata = assistant.process_query(
@@ -486,8 +490,8 @@ async def process_query(request_data: QueryRequest, request: Request):
             answer = _apply_rag_escalation(user_id, request_data.query, answer, metadata)
             
             # Сохранение в кэш
-            if cache and not metadata.get("escalation"):
-                cache.set(request_data.query, answer, metadata)
+            if cache and use_cache and not metadata.get("escalation"):
+                cache.set(request_data.query, answer, metadata, namespace=cache_namespace)
         
         response_time_ms = int((time.time() - start_time) * 1000)
         

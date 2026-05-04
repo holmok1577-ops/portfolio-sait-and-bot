@@ -23,9 +23,10 @@ class ResponseCache:
         
         logger.info(f"Cache инициализирован: {self.cache_file}")
     
-    def _get_key(self, query: str) -> str:
+    def _get_key(self, query: str, namespace: str = "default") -> str:
         """Генерация ключа кэша"""
-        return hashlib.md5(query.lower().strip().encode()).hexdigest()
+        cache_input = f"{namespace}:{query.lower().strip()}"
+        return hashlib.md5(cache_input.encode()).hexdigest()
     
     def _load(self):
         """Загрузка кэша из файла"""
@@ -60,17 +61,17 @@ class ResponseCache:
         if expired_keys:
             logger.info(f"Очищено {len(expired_keys)} устаревших записей")
     
-    def get(self, query: str) -> Optional[str]:
+    def get(self, query: str, namespace: str = "default") -> Optional[str]:
         """Получение ответа из кэша"""
         if not CACHE_ENABLED:
             return None
         
-        key = self._get_key(query)
+        key = self._get_key(query, namespace)
         if key in self.cache:
             entry = self.cache[key]
             # Проверка TTL
             if time.time() - entry.get("timestamp", 0) <= self.ttl:
-                logger.debug(f"Cache hit: {key[:8]}...")
+                logger.debug(f"Cache hit: namespace={namespace}, key={key[:8]}...")
                 return entry.get("response")
             else:
                 # Удаление устаревшей записи
@@ -78,21 +79,22 @@ class ResponseCache:
         
         return None
     
-    def set(self, query: str, response: str, metadata: Dict = None):
+    def set(self, query: str, response: str, metadata: Dict = None, namespace: str = "default"):
         """Сохранение ответа в кэш"""
         if not CACHE_ENABLED:
             return
         
-        key = self._get_key(query)
+        key = self._get_key(query, namespace)
         self.cache[key] = {
             "response": response,
             "timestamp": time.time(),
             "query": query[:100],  # Сохраняем часть запроса для отладки
+            "namespace": namespace,
             "metadata": metadata or {}
         }
         
         self._save()
-        logger.debug(f"Cache set: {key[:8]}...")
+        logger.debug(f"Cache set: namespace={namespace}, key={key[:8]}...")
     
     def clear(self):
         """Очистка всего кэша"""
